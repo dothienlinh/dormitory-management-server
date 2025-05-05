@@ -1,0 +1,11 @@
+# vscode
+.vscode/
+
+# database
+postgres-data/
+redis-data/
+
+# env
+.env
+
+go.sum
