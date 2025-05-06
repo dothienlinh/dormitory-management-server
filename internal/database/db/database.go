@@ -9,23 +9,21 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
-func ConnectDatabase() {
+func NewDBClient() *gorm.DB {
 	dsn := os.Getenv("DB_CONN_STR")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	dbClient, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Fatalln("Failed to connect to database", err)
 	}
 
-	if err := db.Exec(CreateEnumTypes).Error; err != nil {
+	if err := dbClient.Exec(CreateEnumTypes).Error; err != nil {
 		log.Fatalln("Failed to create enum types", err)
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.Room{}); err != nil {
+	if err := dbClient.AutoMigrate(&models.User{}, &models.Room{}, &models.Amenities{}); err != nil {
 		log.Fatalln("Failed to migrate database", err)
 	}
 
-	DB = db
+	return dbClient
 }
