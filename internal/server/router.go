@@ -3,14 +3,15 @@ package server
 import (
 	"dormitory_management/internal/handlers"
 	"dormitory_management/internal/middleware"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() {
+func NewRouter(middleware *middleware.Middleware, handler *handlers.Handler) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
+	router.Use(handlers.ErrorHandler())
 
 	api := router.Group("/api")
 	{
@@ -19,24 +20,35 @@ func SetupRouter() {
 
 			auth := v1.Group("/auth")
 			{
-				auth.POST("/login", handlers.Login)
-				auth.POST("/register", handlers.Register)
-				auth.POST("/refresh-token", handlers.RefreshToken)
+				auth.POST("/login", handler.Login())
+				auth.POST("/register", handler.Register())
+				auth.POST("/refresh-token", handler.RefreshToken())
 			}
 
 			protected := v1.Group("/")
-			protected.Use(middleware.AuthMiddleware)
+			protected.Use(middleware.AuthMiddleware())
 			{
 				auth := protected.Group("/auth")
 				{
-					auth.GET("/me", handlers.Me)
-					auth.POST("/logout", handlers.Logout)
+					auth.GET("/me", handler.Me())
+					auth.POST("/logout", handler.Logout())
 				}
+
+				// API for admin
+				admin := protected.Group("/admin")
+				admin.Use(middleware.RoleAdminMiddleware())
+				{
+					rooms := admin.Group("/rooms")
+					{
+						rooms.POST("/", handler.CreateRoom())
+						rooms.PUT("/:id")
+						rooms.DELETE("/:id")
+					}
+				}
+
 			}
 		}
 	}
 
-	log.Println("Server is running on port 8080")
-
-	router.Run()
+	return router
 }
