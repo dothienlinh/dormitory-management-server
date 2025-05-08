@@ -15,10 +15,6 @@ BEGIN
         CREATE TYPE user_status AS ENUM ('active', 'inactive');
     END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'room_type') THEN
-        CREATE TYPE room_type AS ENUM ('standard', 'premium');
-    END IF;
-
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'room_status') THEN
         CREATE TYPE room_status AS ENUM ('available', 'occupied', 'maintenance');
     END IF;
