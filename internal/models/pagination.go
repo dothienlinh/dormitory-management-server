@@ -1,9 +1,10 @@
 package models
 
 type Pagination struct {
-	Page  int   `form:"page"`
-	Limit int   `form:"limit"`
-	Total int64 `form:"-"`
+	Page  int    `form:"page"`
+	Limit int    `form:"limit"`
+	Total int64  `form:"-"`
+	Sort  string `form:"sort" validate:"oneof=asc desc"`
 }
 
 func (p *Pagination) GetOffset() int {
@@ -25,5 +26,9 @@ func (p *Pagination) Parse() {
 
 	if p.Limit <= 0 || p.Limit > 100 {
 		p.Limit = 10
+	}
+
+	if (p.Sort != "asc" && p.Sort != "desc") || p.Sort == "" {
+		p.Sort = "desc"
 	}
 }

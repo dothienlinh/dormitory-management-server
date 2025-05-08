@@ -21,10 +21,9 @@ type User struct {
 	Gender      UserGender `json:"gender" gorm:"type:user_gender;default:other"`
 	Status      UserStatus `json:"status" gorm:"type:user_status;default:active"`
 	Phone       *string    `json:"phone" gorm:"type:varchar(255);default:null"`
-	Address     *string    `json:"address" gorm:"type:text;default:null"`
 	Birthday    *time.Time `json:"birthday" gorm:"default:null"`
 	Avatar      *string    `json:"avatar" gorm:"type:text;default:null"`
-	RoomID      *uint      `json:"room_id" gorm:"default:null"`
+	RoomID      *uint      `json:"-" gorm:"default:null"`
 	Room        *Room      `json:"room" gorm:"foreignKey:RoomID"`
 }
 
@@ -60,6 +59,7 @@ type UserStatus string
 const (
 	UserStatusActive   UserStatus = "active"
 	UserStatusInactive UserStatus = "inactive"
+	UserStatusAbsent   UserStatus = "absent"
 )
 
 type UserRegister struct {
@@ -75,4 +75,11 @@ type UserLogin struct {
 
 type UserRefreshToken struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+type FilterUser struct {
+	Status  UserStatus `form:"status"`
+	Keyword string     `form:"keyword"`
+	Gender  UserGender `form:"gender"`
+	Pagination
 }

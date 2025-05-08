@@ -33,5 +33,10 @@ func (r *AdminRouter) Register(router *gin.RouterGroup) {
 			roomCategories.PUT("/:id", r.handler.ValidateRoomCategory(), r.handler.UpdateRoomCategory())
 			roomCategories.DELETE("/:id", r.handler.ValidateRoomCategory(), r.handler.DeleteRoomCategory())
 		}
+
+		users := admin.Group("/users")
+		{
+			users.GET("/", r.handler.GetListUser())
+		}
 	}
 }

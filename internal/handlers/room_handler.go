@@ -3,9 +3,11 @@ package handlers
 import (
 	"dormitory_management/internal/models"
 	"dormitory_management/pkg"
+	"errors"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func (h *Handler) ValidateRoom() gin.HandlerFunc {
@@ -14,6 +16,7 @@ func (h *Handler) ValidateRoom() gin.HandlerFunc {
 
 		room := models.Room{}
 		if err := h.dbClient.Where("id = ?", roomId).First(&room).Error; err != nil {
+			h.logger.Error("Error getting room", zap.Error(err))
 			NotFound(c, "Room not found")
 			return
 		}
@@ -28,29 +31,41 @@ func (h *Handler) CreateRoom() gin.HandlerFunc {
 		payload := models.CreateRoom{}
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Error binding JSON", zap.Error(err))
 			BadRequest(c, err.Error())
 			return
 		}
 
 		if err := pkg.ValidateStruct(payload); err != nil {
+			h.logger.Error("Error validating struct", zap.Error(err))
 			BadRequest(c, err.Error())
 			return
 		}
 
 		roomCategoryId := payload.RoomCategoryID
 		roomCategory := models.RoomCategory{}
-		h.dbClient.Where("id = ?", roomCategoryId).First(&roomCategory)
+		if err := h.dbClient.Where("id = ?", roomCategoryId).First(&roomCategory).Error; err != nil {
+			h.logger.Error("Error getting room category", zap.Error(err))
+			NotFound(c, "Room category not found")
+			return
+		}
 
 		if roomCategory.ID == 0 {
+			h.logger.Error("Room category not found")
 			NotFound(c, "Room category not found")
 			return
 		}
 
 		roomNumber := payload.RoomNumber
 		room := models.Room{}
-		h.dbClient.Where("room_number = ?", roomNumber).First(&room)
+		if err := h.dbClient.Where("room_number = ?", roomNumber).First(&room).Error; err != nil {
+			h.logger.Error("Error getting room", zap.Error(err))
+			BadRequest(c, errors.New("error getting room").Error())
+			return
+		}
 
 		if room.ID != 0 {
+			h.logger.Error("Room number already exists")
 			BadRequest(c, "Room number already exists")
 			return
 		}
@@ -60,7 +75,11 @@ func (h *Handler) CreateRoom() gin.HandlerFunc {
 			Status:         payload.Status,
 			RoomCategoryID: roomCategory.ID,
 		}
-		h.dbClient.Create(&roomCreate)
+		if err := h.dbClient.Create(&roomCreate).Error; err != nil {
+			h.logger.Error("Error creating room", zap.Error(err))
+			BadRequest(c, errors.New("error creating room").Error())
+			return
+		}
 
 		Success(c, CreateResponse{ID: roomCreate.ID}, 0)
 	}
@@ -71,6 +90,7 @@ func (h *Handler) GetRooms() gin.HandlerFunc {
 		query := models.FilterRoom{}
 
 		if err := c.ShouldBindQuery(&query); err != nil {
+			h.logger.Error("Error binding JSON", zap.Error(err))
 			BadRequest(c, err.Error())
 			return
 		}
@@ -98,11 +118,19 @@ func (h *Handler) GetRooms() gin.HandlerFunc {
 			values = append(values, query.RoomCategoryID)
 		}
 
-		queryString := strings.Join(conditions, " AND ")
+		whereClause := strings.Join(conditions, " AND ")
 
-		queryBuilder.Select("id").Where(queryString, values...).Count(&query.Total)
+		if err := queryBuilder.Select("id").Where(whereClause, values...).Count(&query.Total).Error; err != nil {
+			h.logger.Error("Error getting rooms", zap.Error(err))
+			BadRequest(c, errors.New("error getting rooms").Error())
+			return
+		}
 
-		queryBuilder.Select("*").Preload("RoomCategory").Limit(query.Limit).Offset(query.GetOffset()).Find(&rooms)
+		if err := queryBuilder.Select("*").Preload("RoomCategory").Limit(query.Limit).Offset(query.GetOffset()).Find(&rooms).Error; err != nil {
+			h.logger.Error("Error getting rooms", zap.Error(err))
+			BadRequest(c, errors.New("error getting rooms").Error())
+			return
+		}
 
 		Success(c, rooms, query.Total)
 	}
@@ -113,6 +141,7 @@ func (h *Handler) GetRoomDetail() gin.HandlerFunc {
 		roomId := c.Param("id")
 		room := models.Room{}
 		if err := h.dbClient.Where("id = ?", roomId).Preload("RoomCategory").First(&room).Error; err != nil {
+			h.logger.Error("Error getting room", zap.Error(err))
 			NotFound(c, "Room not found")
 			return
 		}
@@ -125,6 +154,7 @@ func (h *Handler) UpdateRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		room, exists := GetDataFromContext[models.Room](c, "room")
 		if !exists {
+			h.logger.Error("Room not found")
 			NotFound(c, "Room not found")
 			return
 		}
@@ -132,18 +162,24 @@ func (h *Handler) UpdateRoom() gin.HandlerFunc {
 		payload := models.UpdateRoom{}
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Error binding JSON", zap.Error(err))
 			BadRequest(c, err.Error())
 			return
 		}
 
 		if err := pkg.ValidateStruct(payload); err != nil {
+			h.logger.Error("Error validating struct", zap.Error(err))
 			BadRequest(c, err.Error())
 			return
 		}
 
 		room.Status = payload.Status
 		room.RoomCategoryID = payload.RoomCategoryID
-		h.dbClient.Save(&room)
+		if err := h.dbClient.Save(&room).Error; err != nil {
+			h.logger.Error("Error updating room", zap.Error(err))
+			BadRequest(c, errors.New("error updating room").Error())
+			return
+		}
 
 		Success(c, nil, 0)
 	}
@@ -153,11 +189,16 @@ func (h *Handler) DeleteRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		room, exists := GetDataFromContext[models.Room](c, "room")
 		if !exists {
+			h.logger.Error("Room not found")
 			NotFound(c, "Room not found")
 			return
 		}
 
-		h.dbClient.Delete(&room)
+		if err := h.dbClient.Delete(&room).Error; err != nil {
+			h.logger.Error("Error deleting room", zap.Error(err))
+			BadRequest(c, errors.New("error deleting room").Error())
+			return
+		}
 
 		Success(c, nil, 0)
 	}
