@@ -8,22 +8,24 @@ import (
 	"dormitory_management/internal/server"
 	"dormitory_management/internal/utils"
 	"dormitory_management/pkg"
-	"log"
 )
 
 func main() {
 	pkg.LoadEnv()
+	logger := pkg.ConfigureLogger()
 
 	dbClient := db.NewDBClient()
 	redisClient := redis.NewRedisClient()
 
 	util := utils.NewUtil(dbClient, redisClient)
-	handler := handlers.NewHandler(dbClient, redisClient, util)
+	handler := handlers.NewHandler(dbClient, redisClient, util, logger)
 
-	middleware := middleware.NewMiddleware(dbClient, redisClient, util)
+	middleware := middleware.NewMiddleware(dbClient, redisClient, util, logger)
 	router := server.NewRouter(middleware, handler)
 
-	log.Println("Server is running on port 8080")
+	logger.Info("Server is running on port 8080")
+
+	defer logger.Sync()
 
 	router.Run()
 }

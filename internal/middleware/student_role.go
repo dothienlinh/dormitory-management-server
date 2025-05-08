@@ -5,6 +5,7 @@ import (
 	"dormitory_management/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func (m *Middleware) RoleStudentMiddleware() gin.HandlerFunc {
@@ -12,9 +13,15 @@ func (m *Middleware) RoleStudentMiddleware() gin.HandlerFunc {
 		userId := c.GetUint("user_id")
 
 		user := models.User{}
-		m.dbClient.Where("id = ?", userId).First(&user)
+		if err := m.dbClient.Where("id = ?", userId).First(&user).Error; err != nil {
+			m.logger.Error("Error getting user", zap.Error(err))
+			handlers.Forbidden(c, "Forbidden")
+			c.Abort()
+			return
+		}
 
 		if user.Role != models.UserRoleStudent {
+			m.logger.Error("User is not student", zap.Uint("user_id", userId))
 			handlers.Forbidden(c, "Forbidden")
 			c.Abort()
 			return
