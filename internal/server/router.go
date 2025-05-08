@@ -7,6 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Router interface {
+	Register(router *gin.RouterGroup)
+}
+
 func NewRouter(middleware *middleware.Middleware, handler *handlers.Handler) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -18,34 +22,23 @@ func NewRouter(middleware *middleware.Middleware, handler *handlers.Handler) *gi
 		v1 := api.Group("/v1")
 		{
 
-			auth := v1.Group("/auth")
-			{
-				auth.POST("/login", handler.Login())
-				auth.POST("/register", handler.Register())
-				auth.POST("/refresh-token", handler.RefreshToken())
-			}
+			authRouter := NewAuthRouter(handler, middleware)
+			authRouter.Register(v1)
 
 			protected := v1.Group("/")
 			protected.Use(middleware.AuthMiddleware())
 			{
-				auth := protected.Group("/auth")
-				{
-					auth.GET("/me", handler.Me())
-					auth.POST("/logout", handler.Logout())
-				}
+				userRouter := NewUserRouter(handler, middleware)
+				userRouter.Register(protected)
 
-				// API for admin
-				admin := protected.Group("/admin")
-				admin.Use(middleware.RoleAdminMiddleware())
-				{
-					rooms := admin.Group("/rooms")
-					{
-						rooms.POST("/", handler.CreateRoom())
-						rooms.PUT("/:id")
-						rooms.DELETE("/:id")
-					}
-				}
+				roomRouter := NewRoomRouter(handler, middleware)
+				roomRouter.Register(protected)
 
+				adminRouter := NewAdminRouter(handler, middleware)
+				adminRouter.Register(protected)
+
+				studentRouter := NewStudentRouter(handler, middleware)
+				studentRouter.Register(protected)
 			}
 		}
 	}

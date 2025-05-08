@@ -24,10 +24,28 @@ type (
 		Errors     any    `json:"errors,omitempty"`
 		Total      int64  `json:"total,omitempty"`
 	}
+
+	CreateResponse struct {
+		ID uint `json:"id"`
+	}
 )
 
 func NewHandler(dbClient *gorm.DB, redisClient *redis.Client, util *utils.Util) *Handler {
 	return &Handler{dbClient: dbClient, redisClient: redisClient, util: util}
+}
+
+func GetDataFromContext[T any](c *gin.Context, key string) (value T, exists bool) {
+	data, exists := c.Get(key)
+	if !exists {
+		return *new(T), false
+	}
+
+	value, ok := data.(T)
+	if !ok {
+		return *new(T), false
+	}
+
+	return value, true
 }
 
 func Success(c *gin.Context, data any, total int64) {
@@ -56,6 +74,20 @@ func Unauthorized(c *gin.Context, message string) {
 func BadRequest(c *gin.Context, message string) {
 	c.JSON(http.StatusBadRequest, APIResponse{
 		StatusCode: http.StatusBadRequest,
+		Message:    message,
+	})
+}
+
+func Forbidden(c *gin.Context, message string) {
+	c.JSON(http.StatusForbidden, APIResponse{
+		StatusCode: http.StatusForbidden,
+		Message:    message,
+	})
+}
+
+func NotFound(c *gin.Context, message string) {
+	c.JSON(http.StatusNotFound, APIResponse{
+		StatusCode: http.StatusNotFound,
 		Message:    message,
 	})
 }

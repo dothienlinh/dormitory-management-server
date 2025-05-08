@@ -12,3 +12,7 @@ type BaseModel struct {
 	UpdatedAt *time.Time     `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty"`
 }
+
+type DetailModel struct {
+	ID uint `form:"id" validate:"required"`
+}

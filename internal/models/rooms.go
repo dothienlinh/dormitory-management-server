@@ -2,21 +2,18 @@ package models
 
 type Room struct {
 	BaseModel
-	Capacity    int        `json:"capacity" gorm:"type:int;not null"`
-	Price       int        `json:"price" gorm:"type:int;not null"`
-	RoomType    RoomType   `json:"room_type" gorm:"type:room_type;not null"`
-	Status      RoomStatus `json:"status" gorm:"type:room_status;not null"`
-	Acreage     int        `json:"acreage" gorm:"type:int;not null"`
-	Description string     `json:"description" gorm:"type:text;not null"`
-	Users       []User     `json:"users" gorm:"foreignKey:RoomID"`
+	RoomNumber     string        `json:"room_number" gorm:"not null;unique"`
+	Status         RoomStatus    `json:"status" gorm:"type:room_status;not null"`
+	Users          []User        `json:"-" gorm:"foreignKey:RoomID"`
+	RoomCategoryID uint          `json:"-" gorm:"not null"`
+	RoomCategory   *RoomCategory `json:"room_category"`
 }
 
-type RoomType string
-
-const (
-	Standard RoomType = "standard"
-	Premium  RoomType = "premium"
-)
+type RoomSimple struct {
+	BaseModel
+	RoomNumber string `json:"room_number"`
+	Status     string `json:"status"`
+}
 
 type RoomStatus string
 
@@ -25,3 +22,21 @@ const (
 	Occupied    RoomStatus = "occupied"
 	Maintenance RoomStatus = "maintenance"
 )
+
+type FilterRoom struct {
+	RoomNumber     string     `form:"room_number"`
+	Status         RoomStatus `form:"status" validate:"oneof=available occupied maintenance"`
+	RoomCategoryID uint       `form:"room_category_id"`
+	Pagination
+}
+
+type CreateRoom struct {
+	RoomNumber     string     `json:"room_number" validate:"required"`
+	Status         RoomStatus `json:"status" validate:"required,oneof=available occupied maintenance"`
+	RoomCategoryID uint       `json:"room_category_id" validate:"required"`
+}
+
+type UpdateRoom struct {
+	Status         RoomStatus `json:"status" validate:"required,oneof=available occupied maintenance"`
+	RoomCategoryID uint       `json:"room_category_id" validate:"required"`
+}
