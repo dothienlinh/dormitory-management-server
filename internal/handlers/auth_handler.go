@@ -26,11 +26,7 @@ func (h *Handler) Register() gin.HandlerFunc {
 		}
 
 		userExists := models.User{}
-		if err := h.dbClient.Where("email = ?", payload.Email).First(&userExists).Error; err != nil {
-			h.logger.Error("Error checking user existence", zap.Error(err))
-			BadRequest(c, errors.New("error checking user existence").Error())
-			return
-		}
+		h.dbClient.Where("email = ?", payload.Email).First(&userExists)
 
 		if userExists.ID != 0 {
 			h.logger.Error("User already exists", zap.String("email", payload.Email))

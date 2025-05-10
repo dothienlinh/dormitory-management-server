@@ -24,7 +24,14 @@ func NewDBClient() *gorm.DB {
 		log.Fatalln("Failed to create enum types", err)
 	}
 
-	if err := dbClient.AutoMigrate(&models.User{}, &models.Room{}, &models.Amenities{}, &models.RoomCategory{}); err != nil {
+	if err := dbClient.AutoMigrate(
+		&models.User{},
+		&models.Room{},
+		&models.Amenities{},
+		&models.RoomCategory{},
+		&models.RoomRent{},
+		&models.Contract{},
+	); err != nil {
 		log.Fatalln("Failed to migrate database", err)
 	}
 

@@ -25,6 +25,7 @@ func (r *AdminRouter) Register(router *gin.RouterGroup) {
 			rooms.POST("/", r.handler.CreateRoom())
 			rooms.PUT("/:id", r.handler.ValidateRoom(), r.handler.UpdateRoom())
 			rooms.DELETE("/:id", r.handler.ValidateRoom(), r.handler.DeleteRoom())
+			rooms.GET("/:id/students", r.handler.GetListStudentsInRoom())
 		}
 
 		roomCategories := admin.Group("/room-categories")
@@ -37,6 +38,8 @@ func (r *AdminRouter) Register(router *gin.RouterGroup) {
 		users := admin.Group("/users")
 		{
 			users.GET("/", r.handler.GetListUser())
+			users.POST("/:user_id/add-to-room/:room_id", r.handler.AddUserToRoom())
+			users.DELETE("/:user_id/remove-from-room/:room_id", r.handler.RemoveUserFromRoom())
 		}
 	}
 }
