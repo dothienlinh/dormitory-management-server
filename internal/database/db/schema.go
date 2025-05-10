@@ -18,6 +18,14 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'room_status') THEN
         CREATE TYPE room_status AS ENUM ('available', 'occupied', 'maintenance');
     END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'room_rent_status') THEN
+        CREATE TYPE room_rent_status AS ENUM ('active', 'inactive', 'graduated');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'contract_status') THEN
+        CREATE TYPE contract_status AS ENUM ('active', 'inactive');
+    END IF;
 END
 $$;
 `

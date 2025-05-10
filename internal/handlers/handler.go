@@ -94,6 +94,13 @@ func NotFound(c *gin.Context, message string) {
 	})
 }
 
+func DBError(c *gin.Context, err error) {
+	c.JSON(http.StatusInternalServerError, APIResponse{
+		StatusCode: http.StatusInternalServerError,
+		Message:    err.Error(),
+	})
+}
+
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()

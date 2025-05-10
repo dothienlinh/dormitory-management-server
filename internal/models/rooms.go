@@ -4,9 +4,10 @@ type Room struct {
 	BaseModel
 	RoomNumber     string        `json:"room_number" gorm:"not null;unique"`
 	Status         RoomStatus    `json:"status" gorm:"type:room_status;not null"`
-	Users          []User        `json:"-" gorm:"foreignKey:RoomID"`
 	RoomCategoryID uint          `json:"-" gorm:"not null"`
 	RoomCategory   *RoomCategory `json:"room_category"`
+	RoomRents      []RoomRent    `json:"-" gorm:"foreignKey:RoomID"`
+	Contracts      []Contract    `json:"-" gorm:"foreignKey:RoomID"`
 }
 
 type RoomSimple struct {

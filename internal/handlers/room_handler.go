@@ -4,6 +4,7 @@ import (
 	"dormitory_management/internal/models"
 	"dormitory_management/pkg"
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -201,5 +202,35 @@ func (h *Handler) DeleteRoom() gin.HandlerFunc {
 		}
 
 		Success(c, nil, 0)
+	}
+}
+
+func (h *Handler) GetListStudentsInRoom() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		roomIdParam := ctx.Param("id")
+		roomId, err := strconv.Atoi(roomIdParam)
+		if err != nil {
+			h.logger.Error("Error converting roomID to int", zap.Error(err))
+			BadRequest(ctx, "Invalid roomID")
+			return
+		}
+
+		room := models.Room{}
+		if err := h.dbClient.Where("id = ?", roomId).First(&room).Error; err != nil {
+			h.logger.Error("Error getting room", zap.Error(err))
+			BadRequest(ctx, "Room not found")
+			return
+		}
+
+		users := []models.UserSimple{}
+		if err := h.dbClient.Model(&models.User{}).
+			Select("id, full_name, student_code, email, gender, status, phone, birthday, avatar").
+			Where("room_id = ?", roomId).Find(&users).Error; err != nil {
+			h.logger.Error("Error getting users", zap.Error(err))
+			BadRequest(ctx, "Error getting users")
+			return
+		}
+
+		Success(ctx, users, 0)
 	}
 }

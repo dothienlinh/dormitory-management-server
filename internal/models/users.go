@@ -23,8 +23,22 @@ type User struct {
 	Phone       *string    `json:"phone" gorm:"type:varchar(255);default:null"`
 	Birthday    *time.Time `json:"birthday" gorm:"default:null"`
 	Avatar      *string    `json:"avatar" gorm:"type:text;default:null"`
-	RoomID      *uint      `json:"-" gorm:"default:null"`
-	Room        *Room      `json:"room" gorm:"foreignKey:RoomID"`
+	RoomRentID  *uint      `json:"-" gorm:"default:null"`
+	RoomRent    *RoomRent  `json:"room_rent"`
+	ContractID  *uint      `json:"-" gorm:"default:null"`
+	Contract    *Contract  `json:"contract"`
+}
+
+type UserSimple struct {
+	BaseModel
+	FullName    string     `json:"full_name"`
+	StudentCode string     `json:"student_code"`
+	Email       string     `json:"email"`
+	Gender      UserGender `json:"gender"`
+	Status      UserStatus `json:"status"`
+	Phone       *string    `json:"phone"`
+	Birthday    *time.Time `json:"birthday"`
+	Avatar      *string    `json:"avatar"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
@@ -78,8 +92,8 @@ type UserRefreshToken struct {
 }
 
 type FilterUser struct {
-	Status  UserStatus `form:"status"`
+	Status  UserStatus `form:"status" validate:"omitempty,oneof=active inactive absent"`
 	Keyword string     `form:"keyword"`
-	Gender  UserGender `form:"gender"`
+	Gender  UserGender `form:"gender" validate:"omitempty,oneof=male female other"`
 	Pagination
 }
