@@ -4,7 +4,7 @@ type Pagination struct {
 	Page  int    `form:"page"`
 	Limit int    `form:"limit"`
 	Total int64  `form:"-"`
-	Sort  string `form:"sort" validate:"omitempty,oneof=asc desc"`
+	Sort  string `form:"sort" binding:"omitempty,oneof=asc desc"`
 }
 
 func (p *Pagination) GetOffset() int {

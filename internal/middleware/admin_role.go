@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"dormitory_management/internal/handlers"
 	"dormitory_management/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -15,14 +14,14 @@ func (m *Middleware) RoleAdminMiddleware() gin.HandlerFunc {
 		user := models.User{}
 		if err := m.dbClient.Where("id = ?", userId).First(&user).Error; err != nil {
 			m.logger.Error("Error getting user", zap.Error(err))
-			handlers.Forbidden(c, "Forbidden")
+			m.response.Forbidden(c, "Forbidden")
 			c.Abort()
 			return
 		}
 
 		if user.Role != models.UserRoleAdmin {
 			m.logger.Error("User is not admin", zap.Uint("user_id", userId))
-			handlers.Forbidden(c, "Forbidden")
+			m.response.Forbidden(c, "Forbidden")
 			c.Abort()
 			return
 		}

@@ -1,22 +1,19 @@
 package handlers
 
 import (
-	"dormitory_management/internal/utils"
+	"dormitory_management/internal/services"
 	"dormitory_management/pkg"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type (
 	Handler struct {
-		dbClient    *gorm.DB
-		redisClient *redis.Client
-		util        *utils.Util
-		logger      *zap.Logger
+		response *services.APIResponse
+		service  *services.Service
+		logger   *zap.Logger
 	}
 
 	APIResponse struct {
@@ -32,8 +29,9 @@ type (
 	}
 )
 
-func NewHandler(dbClient *gorm.DB, redisClient *redis.Client, util *utils.Util, logger *zap.Logger) *Handler {
-	return &Handler{dbClient: dbClient, redisClient: redisClient, util: util, logger: logger}
+func NewHandler(service *services.Service, logger *zap.Logger, response *services.APIResponse) *Handler {
+
+	return &Handler{service: service, logger: logger, response: response}
 }
 
 func GetDataFromContext[T any](c *gin.Context, key string) (value T, exists bool) {
@@ -48,57 +46,6 @@ func GetDataFromContext[T any](c *gin.Context, key string) (value T, exists bool
 	}
 
 	return value, true
-}
-
-func Success(c *gin.Context, data any, total int64) {
-	c.JSON(http.StatusOK, APIResponse{
-		StatusCode: http.StatusOK,
-		Data:       data,
-		Total:      total,
-		Message:    "success",
-	})
-}
-
-func InternalServer(c *gin.Context, message string) {
-	c.JSON(http.StatusInternalServerError, APIResponse{
-		StatusCode: http.StatusInternalServerError,
-		Message:    message,
-	})
-}
-
-func Unauthorized(c *gin.Context, message string) {
-	c.JSON(http.StatusUnauthorized, APIResponse{
-		StatusCode: http.StatusUnauthorized,
-		Message:    message,
-	})
-}
-
-func BadRequest(c *gin.Context, message string) {
-	c.JSON(http.StatusBadRequest, APIResponse{
-		StatusCode: http.StatusBadRequest,
-		Message:    message,
-	})
-}
-
-func Forbidden(c *gin.Context, message string) {
-	c.JSON(http.StatusForbidden, APIResponse{
-		StatusCode: http.StatusForbidden,
-		Message:    message,
-	})
-}
-
-func NotFound(c *gin.Context, message string) {
-	c.JSON(http.StatusNotFound, APIResponse{
-		StatusCode: http.StatusNotFound,
-		Message:    message,
-	})
-}
-
-func DBError(c *gin.Context, err error) {
-	c.JSON(http.StatusInternalServerError, APIResponse{
-		StatusCode: http.StatusInternalServerError,
-		Message:    err.Error(),
-	})
 }
 
 func ErrorHandler() gin.HandlerFunc {

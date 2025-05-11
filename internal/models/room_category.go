@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type RoomCategory struct {
 	BaseModel
 	Name        string `json:"name" gorm:"not null"`
@@ -11,11 +13,11 @@ type RoomCategory struct {
 }
 
 type CreateRoomCategory struct {
-	Name        string `json:"name" validate:"required"`
-	Capacity    int    `json:"capacity" validate:"required,oneof=8 6 4"`
-	Price       int    `json:"price" validate:"required"`
-	Acreage     int    `json:"acreage" validate:"required"`
-	Description string `json:"description" validate:"required"`
+	Name        string `json:"name" binding:"required"`
+	Capacity    int    `json:"capacity" binding:"required,oneof=8 6 4"`
+	Price       int    `json:"price" binding:"required"`
+	Acreage     int    `json:"acreage" binding:"required"`
+	Description string `json:"description" binding:"required"`
 }
 
 type ListRoomCategory struct {
@@ -39,4 +41,22 @@ type RoomCategoryDetail struct {
 	Acreage     int          `json:"acreage"`
 	Description string       `json:"description"`
 	Rooms       []RoomSimple `json:"rooms"`
+}
+
+type FilterRoomCategory struct {
+	Name string `form:"name"`
+	Pagination
+}
+
+func (f *FilterRoomCategory) Build() (string, []interface{}) {
+	conditions := []string{}
+	values := []interface{}{}
+
+	if f.Name != "" {
+		conditions = append(conditions, "name ILIKE ?")
+		values = append(values, "%"+f.Name+"%")
+	}
+
+	whereClause := strings.Join(conditions, " AND ")
+	return whereClause, values
 }

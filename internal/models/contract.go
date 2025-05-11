@@ -6,7 +6,7 @@ type Contract struct {
 	BaseModel
 	RoomID    uint           `json:"room_id" gorm:"not null"`
 	Room      *Room          `json:"room"`
-	UserId    *uint          `json:"user_id" gorm:"default:null"`
+	UserId    uint           `json:"user_id" gorm:"not null"`
 	User      *User          `json:"user"`
 	StartDate *time.Time     `json:"start_date" gorm:"not null"`
 	EndDate   *time.Time     `json:"end_date" gorm:"not null"`
@@ -21,13 +21,14 @@ const (
 )
 
 type CreateContract struct {
-	RoomID    uint           `json:"room_id" validate:"required"`
-	StartDate *time.Time     `json:"start_date" validate:"required"`
-	EndDate   *time.Time     `json:"end_date" validate:"required"`
-	Status    ContractStatus `json:"status" validate:"required,oneof=active inactive"`
+	RoomID    uint           `json:"room_id" binding:"required"`
+	UserId    uint           `json:"user_id" binding:"required"`
+	StartDate *time.Time     `json:"start_date" binding:"required"`
+	EndDate   *time.Time     `json:"end_date" binding:"required"`
+	Status    ContractStatus `json:"status" binding:"required,oneof=active inactive"`
 }
 
 type UpdateContract struct {
-	EndDate *time.Time     `json:"end_date" validate:"required"`
-	Status  ContractStatus `json:"status" validate:"required,oneof=active inactive"`
+	EndDate *time.Time     `json:"end_date" binding:"required"`
+	Status  ContractStatus `json:"status" binding:"required,oneof=active inactive"`
 }

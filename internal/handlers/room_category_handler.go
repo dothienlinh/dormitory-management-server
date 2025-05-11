@@ -2,8 +2,7 @@ package handlers
 
 import (
 	"dormitory_management/internal/models"
-	"dormitory_management/pkg"
-	"errors"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -12,11 +11,17 @@ import (
 func (h *Handler) ValidateRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomCategoryId := c.Param("id")
+		roomCategoryIdUint, err := strconv.Atoi(roomCategoryId)
+		if err != nil {
+			h.logger.Error("Error converting roomCategoryId to uint", zap.Error(err))
+			h.response.BadRequest(c, "Invalid roomCategoryId")
+			return
+		}
 
-		roomCategory := models.RoomCategory{}
-		if err := h.dbClient.Where("id = ?", roomCategoryId).First(&roomCategory).Error; err != nil {
+		roomCategory, err := h.service.RoomCategory.ValidateRoomCategory(uint(roomCategoryIdUint))
+		if err != nil {
 			h.logger.Error("Error getting room category", zap.Error(err))
-			NotFound(c, "Room category not found")
+			h.response.NotFound(c, "Room category not found")
 			return
 		}
 
@@ -31,59 +36,45 @@ func (h *Handler) CreateRoomCategory() gin.HandlerFunc {
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Error binding JSON", zap.Error(err))
-			BadRequest(c, err.Error())
+			h.response.BadRequest(c, err.Error())
 			return
 		}
 
-		if err := pkg.ValidateStruct(payload); err != nil {
-			h.logger.Error("Error validating struct", zap.Error(err))
-			BadRequest(c, err.Error())
-			return
-		}
-
-		roomCategory := models.RoomCategory{
-			Name:        payload.Name,
-			Capacity:    payload.Capacity,
-			Price:       payload.Price,
-			Acreage:     payload.Acreage,
-			Description: payload.Description,
-		}
-
-		if err := h.dbClient.Create(&roomCategory).Error; err != nil {
-			h.logger.Error("Error creating room category", zap.Error(err))
-			BadRequest(c, errors.New("error creating room category").Error())
-			return
-		}
-
-		Success(c, CreateResponse{ID: roomCategory.ID}, 0)
+		h.service.RoomCategory.CreateRoomCategory(c, payload)
 	}
 }
 
 func (h *Handler) GetRoomCategories() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		roomCategories := []models.ListRoomCategory{}
-		if err := h.dbClient.Model(&models.RoomCategory{}).Find(&roomCategories).Error; err != nil {
-			h.logger.Error("Error getting room categories", zap.Error(err))
-			BadRequest(c, errors.New("error getting room categories").Error())
+		filter := models.FilterRoomCategory{}
+		if err := c.ShouldBindQuery(&filter); err != nil {
+			h.logger.Error("Error binding JSON", zap.Error(err))
+			h.response.BadRequest(c, err.Error())
 			return
 		}
 
-		Success(c, roomCategories, int64(len(roomCategories)))
+		roomCategories, err := h.service.RoomCategory.GetRoomCategories(filter)
+		if err != nil {
+			h.logger.Error("Error getting room categories", zap.Error(err))
+			h.response.BadRequest(c, err.Error())
+			return
+		}
+
+		h.response.Success(c, roomCategories, int64(len(roomCategories)))
 	}
 }
 
 func (h *Handler) GetRoomCategoryDetail() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomCategoryId := c.Param("id")
-
-		roomCategory := models.RoomCategory{}
-		if err := h.dbClient.Where("id = ?", roomCategoryId).First(&roomCategory).Error; err != nil {
-			h.logger.Error("Error getting room category", zap.Error(err))
-			NotFound(c, "Room category not found")
+		roomCategoryIdUint, err := strconv.Atoi(roomCategoryId)
+		if err != nil {
+			h.logger.Error("Error converting roomCategoryId to uint", zap.Error(err))
+			h.response.BadRequest(c, "Invalid roomCategoryId")
 			return
 		}
 
-		Success(c, roomCategory, 0)
+		h.service.RoomCategory.GetRoomCategoryDetail(c, uint(roomCategoryIdUint))
 	}
 }
 
@@ -92,7 +83,7 @@ func (h *Handler) UpdateRoomCategory() gin.HandlerFunc {
 		roomCategory, exists := GetDataFromContext[models.RoomCategory](c, "roomCategory")
 		if !exists {
 			h.logger.Error("Room category not found")
-			NotFound(c, "Room category not found")
+			h.response.NotFound(c, "Room category not found")
 			return
 		}
 
@@ -100,29 +91,11 @@ func (h *Handler) UpdateRoomCategory() gin.HandlerFunc {
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Error binding JSON", zap.Error(err))
-			BadRequest(c, err.Error())
+			h.response.BadRequest(c, err.Error())
 			return
 		}
 
-		if err := pkg.ValidateStruct(payload); err != nil {
-			h.logger.Error("Error validating struct", zap.Error(err))
-			BadRequest(c, err.Error())
-			return
-		}
-
-		roomCategory.Name = payload.Name
-		roomCategory.Capacity = payload.Capacity
-		roomCategory.Price = payload.Price
-		roomCategory.Acreage = payload.Acreage
-		roomCategory.Description = payload.Description
-
-		if err := h.dbClient.Save(&roomCategory).Error; err != nil {
-			h.logger.Error("Error updating room category", zap.Error(err))
-			BadRequest(c, errors.New("error updating room category").Error())
-			return
-		}
-
-		Success(c, nil, 0)
+		h.service.RoomCategory.UpdateRoomCategory(c, roomCategory, payload)
 	}
 }
 
@@ -131,16 +104,10 @@ func (h *Handler) DeleteRoomCategory() gin.HandlerFunc {
 		roomCategory, exists := GetDataFromContext[models.RoomCategory](c, "roomCategory")
 		if !exists {
 			h.logger.Error("Room category not found")
-			NotFound(c, "Room category not found")
+			h.response.NotFound(c, "Room category not found")
 			return
 		}
 
-		if err := h.dbClient.Delete(&roomCategory).Error; err != nil {
-			h.logger.Error("Error deleting room category", zap.Error(err))
-			BadRequest(c, errors.New("error deleting room category").Error())
-			return
-		}
-
-		Success(c, nil, 0)
+		h.service.RoomCategory.DeleteRoomCategory(c, roomCategory)
 	}
 }
