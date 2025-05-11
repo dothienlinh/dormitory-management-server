@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type RoomCategory struct {
 	BaseModel
 	Name        string `json:"name" gorm:"not null"`
@@ -39,4 +41,22 @@ type RoomCategoryDetail struct {
 	Acreage     int          `json:"acreage"`
 	Description string       `json:"description"`
 	Rooms       []RoomSimple `json:"rooms"`
+}
+
+type FilterRoomCategory struct {
+	Name string `form:"name"`
+	Pagination
+}
+
+func (f *FilterRoomCategory) Build() (string, []interface{}) {
+	conditions := []string{}
+	values := []interface{}{}
+
+	if f.Name != "" {
+		conditions = append(conditions, "name ILIKE ?")
+		values = append(values, "%"+f.Name+"%")
+	}
+
+	whereClause := strings.Join(conditions, " AND ")
+	return whereClause, values
 }

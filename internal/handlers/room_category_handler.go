@@ -3,7 +3,7 @@ package handlers
 import (
 	"dormitory_management/internal/models"
 	"dormitory_management/pkg"
-	"errors"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -12,9 +12,15 @@ import (
 func (h *Handler) ValidateRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomCategoryId := c.Param("id")
+		roomCategoryIdUint, err := strconv.Atoi(roomCategoryId)
+		if err != nil {
+			h.logger.Error("Error converting roomCategoryId to uint", zap.Error(err))
+			BadRequest(c, "Invalid roomCategoryId")
+			return
+		}
 
-		roomCategory := models.RoomCategory{}
-		if err := h.dbClient.Where("id = ?", roomCategoryId).First(&roomCategory).Error; err != nil {
+		roomCategory, err := h.service.RoomCategory.ValidateRoomCategory(uint(roomCategoryIdUint))
+		if err != nil {
 			h.logger.Error("Error getting room category", zap.Error(err))
 			NotFound(c, "Room category not found")
 			return
@@ -41,17 +47,10 @@ func (h *Handler) CreateRoomCategory() gin.HandlerFunc {
 			return
 		}
 
-		roomCategory := models.RoomCategory{
-			Name:        payload.Name,
-			Capacity:    payload.Capacity,
-			Price:       payload.Price,
-			Acreage:     payload.Acreage,
-			Description: payload.Description,
-		}
-
-		if err := h.dbClient.Create(&roomCategory).Error; err != nil {
+		roomCategory, err := h.service.RoomCategory.CreateRoomCategory(payload)
+		if err != nil {
 			h.logger.Error("Error creating room category", zap.Error(err))
-			BadRequest(c, errors.New("error creating room category").Error())
+			BadRequest(c, err.Error())
 			return
 		}
 
@@ -61,10 +60,17 @@ func (h *Handler) CreateRoomCategory() gin.HandlerFunc {
 
 func (h *Handler) GetRoomCategories() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		roomCategories := []models.ListRoomCategory{}
-		if err := h.dbClient.Model(&models.RoomCategory{}).Find(&roomCategories).Error; err != nil {
+		filter := models.FilterRoomCategory{}
+		if err := c.ShouldBindQuery(&filter); err != nil {
+			h.logger.Error("Error binding JSON", zap.Error(err))
+			BadRequest(c, err.Error())
+			return
+		}
+
+		roomCategories, err := h.service.RoomCategory.GetRoomCategories(filter)
+		if err != nil {
 			h.logger.Error("Error getting room categories", zap.Error(err))
-			BadRequest(c, errors.New("error getting room categories").Error())
+			BadRequest(c, err.Error())
 			return
 		}
 
@@ -75,9 +81,15 @@ func (h *Handler) GetRoomCategories() gin.HandlerFunc {
 func (h *Handler) GetRoomCategoryDetail() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomCategoryId := c.Param("id")
+		roomCategoryIdUint, err := strconv.Atoi(roomCategoryId)
+		if err != nil {
+			h.logger.Error("Error converting roomCategoryId to uint", zap.Error(err))
+			BadRequest(c, "Invalid roomCategoryId")
+			return
+		}
 
-		roomCategory := models.RoomCategory{}
-		if err := h.dbClient.Where("id = ?", roomCategoryId).First(&roomCategory).Error; err != nil {
+		roomCategory, err := h.service.RoomCategory.GetRoomCategoryDetail(uint(roomCategoryIdUint))
+		if err != nil {
 			h.logger.Error("Error getting room category", zap.Error(err))
 			NotFound(c, "Room category not found")
 			return
@@ -110,19 +122,14 @@ func (h *Handler) UpdateRoomCategory() gin.HandlerFunc {
 			return
 		}
 
-		roomCategory.Name = payload.Name
-		roomCategory.Capacity = payload.Capacity
-		roomCategory.Price = payload.Price
-		roomCategory.Acreage = payload.Acreage
-		roomCategory.Description = payload.Description
-
-		if err := h.dbClient.Save(&roomCategory).Error; err != nil {
+		roomCategory, err := h.service.RoomCategory.UpdateRoomCategory(roomCategory, payload)
+		if err != nil {
 			h.logger.Error("Error updating room category", zap.Error(err))
-			BadRequest(c, errors.New("error updating room category").Error())
+			BadRequest(c, err.Error())
 			return
 		}
 
-		Success(c, nil, 0)
+		Success(c, roomCategory, 0)
 	}
 }
 
@@ -135,9 +142,10 @@ func (h *Handler) DeleteRoomCategory() gin.HandlerFunc {
 			return
 		}
 
-		if err := h.dbClient.Delete(&roomCategory).Error; err != nil {
+		err := h.service.RoomCategory.DeleteRoomCategory(roomCategory)
+		if err != nil {
 			h.logger.Error("Error deleting room category", zap.Error(err))
-			BadRequest(c, errors.New("error deleting room category").Error())
+			BadRequest(c, err.Error())
 			return
 		}
 

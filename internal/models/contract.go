@@ -6,7 +6,7 @@ type Contract struct {
 	BaseModel
 	RoomID    uint           `json:"room_id" gorm:"not null"`
 	Room      *Room          `json:"room"`
-	UserId    *uint          `json:"user_id" gorm:"default:null"`
+	UserId    uint           `json:"user_id" gorm:"not null"`
 	User      *User          `json:"user"`
 	StartDate *time.Time     `json:"start_date" gorm:"not null"`
 	EndDate   *time.Time     `json:"end_date" gorm:"not null"`
@@ -22,6 +22,7 @@ const (
 
 type CreateContract struct {
 	RoomID    uint           `json:"room_id" validate:"required"`
+	UserId    uint           `json:"user_id" validate:"required"`
 	StartDate *time.Time     `json:"start_date" validate:"required"`
 	EndDate   *time.Time     `json:"end_date" validate:"required"`
 	Status    ContractStatus `json:"status" validate:"required,oneof=active inactive"`

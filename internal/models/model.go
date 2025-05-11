@@ -16,3 +16,7 @@ type BaseModel struct {
 type DetailModel struct {
 	ID uint `form:"id" validate:"required"`
 }
+
+type FilterModel interface {
+	Build() (string, []interface{})
+}

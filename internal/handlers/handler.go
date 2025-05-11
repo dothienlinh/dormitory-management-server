@@ -1,22 +1,18 @@
 package handlers
 
 import (
-	"dormitory_management/internal/utils"
+	"dormitory_management/internal/services"
 	"dormitory_management/pkg"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type (
 	Handler struct {
-		dbClient    *gorm.DB
-		redisClient *redis.Client
-		util        *utils.Util
-		logger      *zap.Logger
+		service *services.Service
+		logger  *zap.Logger
 	}
 
 	APIResponse struct {
@@ -32,8 +28,8 @@ type (
 	}
 )
 
-func NewHandler(dbClient *gorm.DB, redisClient *redis.Client, util *utils.Util, logger *zap.Logger) *Handler {
-	return &Handler{dbClient: dbClient, redisClient: redisClient, util: util, logger: logger}
+func NewHandler(service *services.Service, logger *zap.Logger) *Handler {
+	return &Handler{service: service, logger: logger}
 }
 
 func GetDataFromContext[T any](c *gin.Context, key string) (value T, exists bool) {

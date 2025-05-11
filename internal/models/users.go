@@ -2,6 +2,7 @@ package models
 
 import (
 	"dormitory_management/internal/helpers"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -96,4 +97,29 @@ type FilterUser struct {
 	Keyword string     `form:"keyword"`
 	Gender  UserGender `form:"gender" validate:"omitempty,oneof=male female other"`
 	Pagination
+}
+
+func (f FilterUser) Build() (string, []interface{}) {
+	conditions := []string{"role = ?"}
+	values := []interface{}{UserRoleStudent}
+
+	if f.Status != "" {
+		conditions = append(conditions, "status = ?")
+		values = append(values, f.Status)
+	}
+
+	if f.Gender != "" {
+		conditions = append(conditions, "gender = ?")
+		values = append(values, f.Gender)
+	}
+
+	if f.Keyword != "" {
+		conditions = append(conditions, "(full_name LIKE ? OR email LIKE ? OR phone LIKE ? OR student_code LIKE ?)")
+		keyword := "%" + f.Keyword + "%"
+		values = append(values, keyword, keyword, keyword, keyword)
+	}
+
+	whereClause := strings.Join(conditions, " AND ")
+
+	return whereClause, values
 }

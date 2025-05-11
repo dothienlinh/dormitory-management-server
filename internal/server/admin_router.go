@@ -41,5 +41,10 @@ func (r *AdminRouter) Register(router *gin.RouterGroup) {
 			users.POST("/:user_id/add-to-room/:room_id", r.handler.AddUserToRoom())
 			users.DELETE("/:user_id/remove-from-room/:room_id", r.handler.RemoveUserFromRoom())
 		}
+
+		contract := admin.Group("/contract")
+		{
+			contract.POST("/", r.handler.CreateContract())
+		}
 	}
 }
