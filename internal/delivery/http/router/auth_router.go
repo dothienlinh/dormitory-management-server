@@ -1,0 +1,21 @@
+package router
+
+import (
+	"dormitory_management/internal/delivery/http/handler"
+	"dormitory_management/internal/delivery/http/middleware"
+
+	"github.com/gin-gonic/gin"
+)
+
+// SetupAuthRoutes configures auth related routes
+func SetupAuthRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *middleware.Middleware) {
+	// Auth routes
+	auth := router.Group("/auth")
+	{
+		auth.POST("/register", handlers.Auth.Register())
+		auth.POST("/login", handlers.Auth.Login())
+		auth.POST("/refresh-token", handlers.Auth.RefreshToken())
+		auth.POST("/logout", mw.AuthMiddleware(), handlers.Auth.Logout())
+		auth.GET("/me", mw.AuthMiddleware(), handlers.Auth.Me())
+	}
+}

@@ -1,9 +1,8 @@
 # vscode
 .vscode/
 
-# database
-postgres-data/
-redis-data/
+# docker
+.docker/
 
 # env
 .env
