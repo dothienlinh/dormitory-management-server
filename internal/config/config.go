@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 
@@ -69,13 +70,23 @@ func LoadConfig() *Config {
 	redisHost := getEnv("REDIS_HOST", "localhost")
 	redisPort := getEnv("REDIS_PORT", "6379")
 	redisPassword := getEnv("REDIS_PASSWORD", "")
-	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
+	redisDB, err := strconv.Atoi(getEnv("REDIS_DB", "0"))
+	if err != nil {
+		log.Fatalf("Failed to convert REDIS_DB to int: %v", err)
+	}
 
 	// JWT config
 	jwtAccessSecret := getEnv("JWT_ACCESS_SECRET", "your-secret-key")
 	jwtRefreshSecret := getEnv("JWT_REFRESH_SECRET", "your-secret-key")
-	jwtAccessExpiresIn, _ := strconv.Atoi(getEnv("JWT_ACCESS_EXPIRES_IN", "3600"))
-	jwtRefreshExpiresIn, _ := strconv.Atoi(getEnv("JWT_REFRESH_EXPIRES_IN", "604800"))
+	jwtAccessExpiresIn, err := strconv.Atoi(getEnv("JWT_ACCESS_EXPIRES_IN", "3600"))
+	if err != nil {
+		log.Fatalf("Failed to convert JWT_ACCESS_EXPIRES_IN to int: %v", err)
+	}
+
+	jwtRefreshExpiresIn, err := strconv.Atoi(getEnv("JWT_REFRESH_EXPIRES_IN", "604800"))
+	if err != nil {
+		log.Fatalf("Failed to convert JWT_REFRESH_EXPIRES_IN to int: %v", err)
+	}
 
 	// Log level
 	logLevel := getEnv("LOG_LEVEL", "info")

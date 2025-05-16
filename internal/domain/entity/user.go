@@ -37,20 +37,24 @@ const (
 // User entity
 type User struct {
 	Base
-	FullName    string     `json:"full_name" gorm:"type:varchar(255)"`
-	StudentCode string     `json:"student_code" gorm:"type:varchar(255);unique"`
-	Email       string     `json:"email" gorm:"type:varchar(255);unique"`
-	Password    string     `json:"-" gorm:"type:text"`
-	Role        UserRole   `json:"role" gorm:"type:user_role;default:student"`
-	Gender      UserGender `json:"gender" gorm:"type:user_gender;default:other"`
-	Status      UserStatus `json:"status" gorm:"type:user_status;default:active"`
-	Phone       *string    `json:"phone" gorm:"type:varchar(255);default:null"`
-	Birthday    *time.Time `json:"birthday" gorm:"default:null"`
-	Avatar      *string    `json:"avatar" gorm:"type:text;default:null"`
-	RoomRentID  *uint      `json:"-" gorm:"default:null"`
+	FullName    string     `json:"full_name"`
+	StudentCode string     `json:"student_code"`
+	Email       string     `json:"email"`
+	Password    string     `json:"-"`
+	Role        UserRole   `json:"role"`
+	Gender      UserGender `json:"gender"`
+	Status      UserStatus `json:"status"`
+	Phone       *string    `json:"phone"`
+	Birthday    *time.Time `json:"birthday"`
+	Avatar      *string    `json:"avatar"`
+	RoomRentID  *uint      `json:"-"`
 	RoomRent    *RoomRent  `json:"room_rent"`
-	ContractID  *uint      `json:"-" gorm:"default:null"`
+	ContractID  *uint      `json:"-"`
 	Contract    *Contract  `json:"contract"`
+}
+
+func (User) TableName() string {
+	return "users"
 }
 
 // UserSimple is a simplified version of User for limited data exposure

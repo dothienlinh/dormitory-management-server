@@ -71,7 +71,13 @@ docker-compose up -d
 
 ### Running Locally
 
-1. Build and run the server:
+1. Run migration
+
+```bash
+make migrate-up
+```
+
+2. Build and run the server:
 
 ```bash
 go run cmd/main.go

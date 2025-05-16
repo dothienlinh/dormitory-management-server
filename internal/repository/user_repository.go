@@ -24,7 +24,7 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 
 // Create creates a new user
 func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
-	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Create(user).Error; err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 	return nil
@@ -33,7 +33,7 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
 // GetByID retrieves a user by ID
 func (r *userRepository) GetByID(ctx context.Context, id uint) (*entity.User, error) {
 	var user entity.User
-	if err := r.db.WithContext(ctx).Preload("RoomRent.Room.RoomCategory").First(&user, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Preload("RoomRent.Room.RoomCategory").First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("user with ID %d not found", id)
 		}
@@ -45,7 +45,7 @@ func (r *userRepository) GetByID(ctx context.Context, id uint) (*entity.User, er
 // GetByEmail retrieves a user by email
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
-	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("email = ?", email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("user with email %s not found", email)
 		}
@@ -63,12 +63,12 @@ func (r *userRepository) List(ctx context.Context, filter *entity.UserFilter) ([
 	var total int64
 
 	// Count total records
-	if err := r.db.WithContext(ctx).Model(&entity.User{}).Where(whereClause, values...).Count(&total).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Where(whereClause, values...).Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count users: %w", err)
 	}
 
 	// Get records with pagination
-	if err := r.db.WithContext(ctx).Where(whereClause, values...).
+	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Where(whereClause, values...).
 		Preload("RoomRent.Room.RoomCategory").
 		Order("created_at DESC").
 		Limit(filter.Limit).
@@ -82,7 +82,7 @@ func (r *userRepository) List(ctx context.Context, filter *entity.UserFilter) ([
 
 // Update updates a user
 func (r *userRepository) Update(ctx context.Context, user *entity.User) error {
-	if err := r.db.WithContext(ctx).Save(user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Save(user).Error; err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 	return nil
@@ -90,7 +90,7 @@ func (r *userRepository) Update(ctx context.Context, user *entity.User) error {
 
 // Delete deletes a user
 func (r *userRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.User{}, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Delete(&entity.User{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	return nil
@@ -100,7 +100,7 @@ func (r *userRepository) Delete(ctx context.Context, id uint) error {
 func (r *userRepository) AddUserToRoom(ctx context.Context, payload entity.CreateRoomRent) error {
 	// Check if room exists
 	var room entity.Room
-	if err := r.db.WithContext(ctx).Preload("RoomCategory").Where("id = ?", payload.RoomID).First(&room).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.Room{}.TableName()).Preload("RoomCategory").Where("id = ?", payload.RoomID).First(&room).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("room with ID %d not found", payload.RoomID)
 		}
@@ -109,7 +109,7 @@ func (r *userRepository) AddUserToRoom(ctx context.Context, payload entity.Creat
 
 	// Check if room is full
 	var countStudentsInRoom int64
-	if err := r.db.WithContext(ctx).Model(&entity.RoomRent{}).Where("room_id = ?", payload.RoomID).Count(&countStudentsInRoom).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.RoomRent{}.TableName()).Where("room_id = ?", payload.RoomID).Count(&countStudentsInRoom).Error; err != nil {
 		return fmt.Errorf("failed to count students in room: %w", err)
 	}
 
@@ -119,7 +119,7 @@ func (r *userRepository) AddUserToRoom(ctx context.Context, payload entity.Creat
 
 	// Check if user exists and is a student
 	var user entity.User
-	if err := r.db.WithContext(ctx).Where("id = ? AND role = ?", payload.UserID, entity.UserRoleStudent).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Where("id = ? AND role = ?", payload.UserID, entity.UserRoleStudent).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("student with ID %d not found", payload.UserID)
 		}
@@ -140,11 +140,11 @@ func (r *userRepository) AddUserToRoom(ctx context.Context, payload entity.Creat
 
 	// Transaction to create room rent and update user
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&roomRent).Error; err != nil {
+		if err := tx.Table(entity.RoomRent{}.TableName()).Create(&roomRent).Error; err != nil {
 			return fmt.Errorf("failed to create room rent: %w", err)
 		}
 
-		if err := tx.Model(&user).Update("room_rent_id", roomRent.ID).Error; err != nil {
+		if err := tx.Table(entity.User{}.TableName()).Where("id = ?", payload.UserID).Update("room_rent_id", roomRent.ID).Error; err != nil {
 			return fmt.Errorf("failed to update user: %w", err)
 		}
 
@@ -156,7 +156,7 @@ func (r *userRepository) AddUserToRoom(ctx context.Context, payload entity.Creat
 func (r *userRepository) RemoveUserFromRoom(ctx context.Context, payload entity.RemoveUserFromRoom) error {
 	// Check if room exists
 	var room entity.Room
-	if err := r.db.WithContext(ctx).Where("id = ?", payload.RoomID).First(&room).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.Room{}.TableName()).Where("id = ?", payload.RoomID).First(&room).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("room with ID %d not found", payload.RoomID)
 		}
@@ -165,7 +165,7 @@ func (r *userRepository) RemoveUserFromRoom(ctx context.Context, payload entity.
 
 	// Check if user exists and is a student
 	var user entity.User
-	if err := r.db.WithContext(ctx).Preload("RoomRent").Where("id = ? AND role = ?", payload.UserID, entity.UserRoleStudent).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Preload("RoomRent").Where("id = ? AND role = ?", payload.UserID, entity.UserRoleStudent).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("student with ID %d not found", payload.UserID)
 		}
@@ -179,11 +179,11 @@ func (r *userRepository) RemoveUserFromRoom(ctx context.Context, payload entity.
 
 	// Transaction to remove room rent and update user
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&user).Update("room_rent_id", nil).Error; err != nil {
+		if err := tx.Table(entity.User{}.TableName()).Where("id = ?", payload.UserID).Update("room_rent_id", nil).Error; err != nil {
 			return fmt.Errorf("failed to update user: %w", err)
 		}
 
-		if err := tx.Delete(&user.RoomRent).Error; err != nil {
+		if err := tx.Table(entity.RoomRent{}.TableName()).Where("id = ?", user.RoomRentID).Delete(&entity.RoomRent{}).Error; err != nil {
 			return fmt.Errorf("failed to delete room rent: %w", err)
 		}
 

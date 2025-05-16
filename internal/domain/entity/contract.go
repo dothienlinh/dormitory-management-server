@@ -22,9 +22,14 @@ type Contract struct {
 	Room        Room           `json:"room"`
 	StartDate   time.Time      `json:"start_date"`
 	EndDate     time.Time      `json:"end_date"`
-	Price       float64        `json:"price" gorm:"type:decimal(15,2)"`
-	Status      ContractStatus `json:"status" gorm:"type:contract_status;default:active"`
-	Description string         `json:"description" gorm:"type:text"`
+	Price       float64        `json:"price"`
+	Status      ContractStatus `json:"status"`
+	Description string         `json:"description"`
+	Code        string         `json:"code"`
+}
+
+func (Contract) TableName() string {
+	return "contracts"
 }
 
 // CreateContract is the data transfer object for creating a contract

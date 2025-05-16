@@ -10,6 +10,8 @@ import (
 	"dormitory_management/internal/repository"
 	"dormitory_management/internal/usecase"
 	"dormitory_management/pkg/logger"
+	"fmt"
+	"os"
 )
 
 func main() {
@@ -18,7 +20,11 @@ func main() {
 
 	// Initialize logger
 	log := logger.NewLogger(cfg.LogLevel)
-	defer log.Sync()
+	defer func() {
+		if err := log.Sync(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error syncing logger: %v\n", err)
+		}
+	}()
 
 	// Initialize database connection
 	db, err := database.NewPostgresDB(cfg.Database)
