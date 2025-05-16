@@ -24,7 +24,7 @@ func NewRoomRepository(db *gorm.DB) repository.RoomRepository {
 
 // Create creates a new room
 func (r *roomRepository) Create(ctx context.Context, room *entity.Room) error {
-	if err := r.db.WithContext(ctx).Create(room).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(room.TableName()).Create(room).Error; err != nil {
 		return fmt.Errorf("failed to create room: %w", err)
 	}
 	return nil
@@ -33,7 +33,7 @@ func (r *roomRepository) Create(ctx context.Context, room *entity.Room) error {
 // GetByID retrieves a room by ID
 func (r *roomRepository) GetByID(ctx context.Context, id uint) (*entity.Room, error) {
 	var room entity.Room
-	if err := r.db.WithContext(ctx).Preload("RoomCategory").Preload("RoomRents").First(&room, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(room.TableName()).Preload("RoomCategory").Preload("RoomRents").First(&room, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("room with ID %d not found", id)
 		}
@@ -51,12 +51,12 @@ func (r *roomRepository) List(ctx context.Context, filter *entity.RoomFilter) ([
 	var total int64
 
 	// Count total records
-	if err := r.db.WithContext(ctx).Model(&entity.Room{}).Where(whereClause, values...).Count(&total).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.Room{}.TableName()).Where(whereClause, values...).Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count rooms: %w", err)
 	}
 
 	// Get records with pagination
-	if err := r.db.WithContext(ctx).Where(whereClause, values...).
+	if err := r.db.WithContext(ctx).Table(entity.Room{}.TableName()).Where(whereClause, values...).
 		Preload("RoomCategory").
 		Order("created_at DESC").
 		Limit(filter.Limit).
@@ -70,7 +70,7 @@ func (r *roomRepository) List(ctx context.Context, filter *entity.RoomFilter) ([
 
 // Update updates a room
 func (r *roomRepository) Update(ctx context.Context, room *entity.Room) error {
-	if err := r.db.WithContext(ctx).Save(room).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(room.TableName()).Save(room).Error; err != nil {
 		return fmt.Errorf("failed to update room: %w", err)
 	}
 	return nil
@@ -78,7 +78,7 @@ func (r *roomRepository) Update(ctx context.Context, room *entity.Room) error {
 
 // Delete deletes a room
 func (r *roomRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.Room{}, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.Room{}.TableName()).Delete(&entity.Room{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete room: %w", err)
 	}
 	return nil
@@ -98,7 +98,7 @@ func NewRoomCategoryRepository(db *gorm.DB) repository.RoomCategoryRepository {
 
 // Create creates a new room category
 func (r *roomCategoryRepository) Create(ctx context.Context, category *entity.RoomCategory) error {
-	if err := r.db.WithContext(ctx).Create(category).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(category.TableName()).Create(category).Error; err != nil {
 		return fmt.Errorf("failed to create room category: %w", err)
 	}
 	return nil
@@ -107,7 +107,7 @@ func (r *roomCategoryRepository) Create(ctx context.Context, category *entity.Ro
 // GetByID retrieves a room category by ID
 func (r *roomCategoryRepository) GetByID(ctx context.Context, id uint) (*entity.RoomCategory, error) {
 	var category entity.RoomCategory
-	if err := r.db.WithContext(ctx).Preload("Rooms").First(&category, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(category.TableName()).Preload("Rooms").First(&category, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("room category with ID %d not found", id)
 		}
@@ -125,12 +125,12 @@ func (r *roomCategoryRepository) List(ctx context.Context, filter *entity.RoomCa
 	var total int64
 
 	// Count total records
-	if err := r.db.WithContext(ctx).Model(&entity.RoomCategory{}).Where(whereClause, values...).Count(&total).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.RoomCategory{}.TableName()).Where(whereClause, values...).Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count room categories: %w", err)
 	}
 
 	// Get records with pagination
-	if err := r.db.WithContext(ctx).Where(whereClause, values...).
+	if err := r.db.WithContext(ctx).Table(entity.RoomCategory{}.TableName()).Where(whereClause, values...).
 		Order("created_at DESC").
 		Limit(filter.Limit).
 		Offset(filter.GetOffset()).
@@ -143,7 +143,7 @@ func (r *roomCategoryRepository) List(ctx context.Context, filter *entity.RoomCa
 
 // Update updates a room category
 func (r *roomCategoryRepository) Update(ctx context.Context, category *entity.RoomCategory) error {
-	if err := r.db.WithContext(ctx).Save(category).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(category.TableName()).Save(category).Error; err != nil {
 		return fmt.Errorf("failed to update room category: %w", err)
 	}
 	return nil
@@ -151,7 +151,7 @@ func (r *roomCategoryRepository) Update(ctx context.Context, category *entity.Ro
 
 // Delete deletes a room category
 func (r *roomCategoryRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.RoomCategory{}, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.RoomCategory{}.TableName()).Delete(&entity.RoomCategory{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete room category: %w", err)
 	}
 	return nil

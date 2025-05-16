@@ -24,7 +24,7 @@ func NewContractRepository(db *gorm.DB) repository.ContractRepository {
 
 // Create creates a new contract
 func (r *contractRepository) Create(ctx context.Context, contract *entity.Contract) error {
-	if err := r.db.WithContext(ctx).Create(contract).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(contract.TableName()).Create(contract).Error; err != nil {
 		return fmt.Errorf("failed to create contract: %w", err)
 	}
 	return nil
@@ -33,7 +33,7 @@ func (r *contractRepository) Create(ctx context.Context, contract *entity.Contra
 // GetByID retrieves a contract by ID
 func (r *contractRepository) GetByID(ctx context.Context, id uint) (*entity.Contract, error) {
 	var contract entity.Contract
-	if err := r.db.WithContext(ctx).Preload("User").Preload("Room.RoomCategory").First(&contract, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(contract.TableName()).Preload("User").Preload("Room.RoomCategory").First(&contract, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("contract with ID %d not found", id)
 		}
@@ -45,7 +45,7 @@ func (r *contractRepository) GetByID(ctx context.Context, id uint) (*entity.Cont
 // GetByUserID retrieves a contract by user ID
 func (r *contractRepository) GetByUserID(ctx context.Context, userID uint) (*entity.Contract, error) {
 	var contract entity.Contract
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("User").Preload("Room.RoomCategory").First(&contract).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(contract.TableName()).Where("user_id = ?", userID).Preload("User").Preload("Room.RoomCategory").First(&contract).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("contract for user ID %d not found", userID)
 		}
@@ -58,7 +58,7 @@ func (r *contractRepository) GetByUserID(ctx context.Context, userID uint) (*ent
 func (r *contractRepository) List(ctx context.Context, filter *entity.ContractFilter) ([]entity.Contract, int64, error) {
 	filter.Parse()
 
-	query := r.db.WithContext(ctx).Model(&entity.Contract{})
+	query := r.db.WithContext(ctx).Table(entity.Contract{}.TableName())
 
 	// Apply filters
 	if filter.Status != "" {
@@ -96,7 +96,7 @@ func (r *contractRepository) List(ctx context.Context, filter *entity.ContractFi
 
 // Update updates a contract
 func (r *contractRepository) Update(ctx context.Context, contract *entity.Contract) error {
-	if err := r.db.WithContext(ctx).Save(contract).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(contract.TableName()).Save(contract).Error; err != nil {
 		return fmt.Errorf("failed to update contract: %w", err)
 	}
 	return nil
@@ -104,7 +104,7 @@ func (r *contractRepository) Update(ctx context.Context, contract *entity.Contra
 
 // Delete deletes a contract
 func (r *contractRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.Contract{}, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(entity.Contract{}.TableName()).Delete(&entity.Contract{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete contract: %w", err)
 	}
 	return nil

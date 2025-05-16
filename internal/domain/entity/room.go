@@ -7,12 +7,16 @@ import (
 // Room entity
 type Room struct {
 	Base
-	Name           string       `json:"name" gorm:"type:varchar(255)"`
-	Description    string       `json:"description" gorm:"type:text"`
-	Status         RoomStatus   `json:"status" gorm:"type:room_status;default:available"`
+	Name           string       `json:"name"`
+	Description    string       `json:"description"`
+	Status         RoomStatus   `json:"status"`
 	RoomCategoryID uint         `json:"room_category_id"`
 	RoomCategory   RoomCategory `json:"room_category"`
-	RoomRents      []RoomRent   `json:"room_rents,omitempty" gorm:"foreignKey:RoomID"`
+	RoomRents      []RoomRent   `json:"room_rents,omitempty"`
+}
+
+func (Room) TableName() string {
+	return "rooms"
 }
 
 // RoomStatus represents the status of a room
@@ -27,11 +31,15 @@ const (
 // RoomCategory entity
 type RoomCategory struct {
 	Base
-	Name        string  `json:"name" gorm:"type:varchar(255)"`
-	Description string  `json:"description" gorm:"type:text"`
-	Capacity    int     `json:"capacity" gorm:"type:int"`
-	Price       float64 `json:"price" gorm:"type:decimal(15,2)"`
-	Rooms       []Room  `json:"rooms,omitempty" gorm:"foreignKey:RoomCategoryID"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Capacity    int     `json:"capacity"`
+	Price       float64 `json:"price"`
+	Rooms       []Room  `json:"rooms,omitempty"`
+}
+
+func (RoomCategory) TableName() string {
+	return "room_categories"
 }
 
 // RoomFilter for filtering rooms

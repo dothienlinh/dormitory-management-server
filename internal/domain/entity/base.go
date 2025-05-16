@@ -8,10 +8,10 @@ import (
 
 // Base model for all entities
 type Base struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	DeletedAt gorm.DeletedAt `json:"-"`
 }
 
 // Pagination represents pagination parameters for queries

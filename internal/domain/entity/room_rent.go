@@ -15,7 +15,11 @@ type RoomRent struct {
 	Room   Room           `json:"room"`
 	UserID uint           `json:"user_id"`
 	User   User           `json:"user"`
-	Status RoomRentStatus `json:"status" gorm:"type:room_rent_status;default:active"`
+	Status RoomRentStatus `json:"status"`
+}
+
+func (RoomRent) TableName() string {
+	return "room_rents"
 }
 
 // CreateRoomRent is the data transfer object for creating a room rental
