@@ -15,6 +15,7 @@ type useCases struct {
 	roomCategory usecase.RoomCategoryUseCase
 	contract     usecase.ContractUseCase
 	auth         usecase.AuthUseCase
+	dashboard    usecase.DashboardUseCase
 }
 
 // NewUseCases creates a new UseCases instance
@@ -29,6 +30,7 @@ func NewUseCases(repos repository.Repositories, logger logger.Logger) usecase.Us
 	useCases.roomCategory = NewRoomCategoryUseCase(repos, logger)
 	useCases.contract = NewContractUseCase(repos, logger)
 	useCases.auth = NewAuthUseCase(repos, logger)
+	useCases.dashboard = NewDashboardUseCase(repos, logger)
 
 	return useCases
 }
@@ -56,4 +58,9 @@ func (uc *useCases) Contract() usecase.ContractUseCase {
 // Auth returns the auth use case
 func (uc *useCases) Auth() usecase.AuthUseCase {
 	return uc.auth
+}
+
+// Dashboard returns the dashboard use case
+func (uc *useCases) Dashboard() usecase.DashboardUseCase {
+	return uc.dashboard
 }

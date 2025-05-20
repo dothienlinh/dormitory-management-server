@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -56,6 +57,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		FullName: userData.FullName,
 		Email:    userData.Email,
 		Password: userData.Password,
+		Phone:    userData.Phone,
 		Role:     entity.UserRoleStudent,
 		Gender:   entity.UserGenderOther,
 		Status:   entity.UserStatusActive,
@@ -71,11 +73,35 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 
 // Me returns the current user
 func (uc *authUseCase) Me(ctx context.Context, userID uint) response.StatusResponse {
-	user, err := uc.repos.User().GetByID(ctx, userID)
+	// Get user from cache
+	user, err := uc.repos.Auth().GetUserCache(ctx, userID)
+	if errors.Is(err, redis.Nil) {
+		uc.logger.Info("User not found in cache, fetching from database")
+		user, err := uc.repos.User().GetByID(ctx, userID)
+		if err != nil {
+			uc.logger.Error("User not found", zap.Error(err))
+			return response.Unauthorized("User not found")
+		}
+
+		err = uc.repos.Auth().SetUserCache(ctx, user, uc.config.JWT.AccessExpiresIn)
+		if err != nil {
+			uc.logger.Error("Failed to set user cache", zap.Error(err))
+			return response.InternalServerError("Failed to set user cache")
+		}
+
+		return response.Success(user, 1)
+	}
+
 	if err != nil {
 		uc.logger.Error("User not found", zap.Error(err))
 		return response.Unauthorized("User not found")
 	}
+
+	// user, err := uc.repos.User().GetByID(ctx, userID)
+	// if err != nil {
+	// 	uc.logger.Error("User not found", zap.Error(err))
+	// 	return response.Unauthorized("User not found")
+	// }
 
 	return response.Success(user, 1)
 }
@@ -168,6 +194,11 @@ func (uc *authUseCase) Logout(ctx context.Context, userID uint) response.StatusR
 		return response.InternalServerError("Failed to logout")
 	}
 
+	if err := uc.repos.Auth().DeleteUserCache(ctx, userID); err != nil {
+		uc.logger.Error("Failed to delete user cache", zap.Error(err))
+		return response.InternalServerError("Failed to logout")
+	}
+
 	return response.Success("Logged out successfully", 0)
 }
 
@@ -194,11 +225,7 @@ func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint) (string,
 
 // createAccessToken creates an access token
 func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User) (string, error) {
-	if err := uc.repos.Auth().InvalidateToken(ctx, entity.AccessToken, user.ID); err != nil {
-		uc.logger.Error("Failed to invalidate token", zap.Error(err))
-		return "", fmt.Errorf("failed to invalidate token: %w", err)
-	}
-
+	expiresIn := uc.config.JWT.AccessExpiresIn
 	uuid := uuid.New()
 	accessTokenClaims := Claims{
 		UserID:       user.ID,
@@ -206,7 +233,7 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 		Role:         string(user.Role),
 		TokenVersion: uuid.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(uc.config.JWT.AccessExpiresIn) * time.Second)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expiresIn) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "dormitory-management",
@@ -220,9 +247,14 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 		return "", fmt.Errorf("failed to sign access token: %w", err)
 	}
 
-	if err := uc.repos.Auth().SetTokenVersion(ctx, entity.AccessToken, user.ID, string(uuid.String()), uc.config.JWT.AccessExpiresIn); err != nil {
+	if err := uc.repos.Auth().SetCacheTokenVersion(ctx, entity.AccessToken, user.ID, string(uuid.String()), expiresIn); err != nil {
 		uc.logger.Error("Failed to set token version", zap.Error(err))
 		return "", fmt.Errorf("failed to set token version: %w", err)
+	}
+
+	if err := uc.repos.Auth().SetUserCache(ctx, user, expiresIn); err != nil {
+		uc.logger.Error("Failed to set user cache", zap.Error(err))
+		return "", fmt.Errorf("failed to set user cache: %w", err)
 	}
 
 	return accessTokenString, nil
@@ -230,11 +262,6 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 
 // createRefreshToken creates a refresh token
 func (uc *authUseCase) createRefreshToken(ctx context.Context, user *entity.User) (string, error) {
-	if err := uc.repos.Auth().InvalidateToken(ctx, entity.RefreshToken, user.ID); err != nil {
-		uc.logger.Error("Failed to invalidate token", zap.Error(err))
-		return "", fmt.Errorf("failed to invalidate token: %w", err)
-	}
-
 	uuid := uuid.New()
 	refreshTokenClaims := Claims{
 		UserID:       user.ID,
@@ -256,7 +283,7 @@ func (uc *authUseCase) createRefreshToken(ctx context.Context, user *entity.User
 		return "", fmt.Errorf("failed to sign refresh token: %w", err)
 	}
 
-	if err := uc.repos.Auth().SetTokenVersion(ctx, entity.RefreshToken, user.ID, string(uuid.String()), uc.config.JWT.RefreshExpiresIn); err != nil {
+	if err := uc.repos.Auth().SetCacheTokenVersion(ctx, entity.RefreshToken, user.ID, string(uuid.String()), uc.config.JWT.RefreshExpiresIn); err != nil {
 		uc.logger.Error("Failed to set token version", zap.Error(err))
 		return "", fmt.Errorf("failed to set token version: %w", err)
 	}
