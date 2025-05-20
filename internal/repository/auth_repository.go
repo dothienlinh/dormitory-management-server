@@ -5,45 +5,76 @@ import (
 	"dormitory_management/internal/domain/entity"
 	"dormitory_management/internal/domain/repository"
 	"dormitory_management/internal/helper"
+	"dormitory_management/internal/infra/cache"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // authRepository implements the repository.AuthRepository interface
 type authRepository struct {
-	db          *gorm.DB
-	redisClient *redis.Client
+	db    *gorm.DB
+	redis *cache.RedisClient
 }
 
 // NewAuthRepository creates a new auth repository
-func NewAuthRepository(db *gorm.DB, redisClient *redis.Client) repository.AuthRepository {
+func NewAuthRepository(db *gorm.DB, redisClient *cache.RedisClient) repository.AuthRepository {
 	return &authRepository{
-		db:          db,
-		redisClient: redisClient,
+		db:    db,
+		redis: redisClient,
 	}
 }
 
 // CheckTokenVersion checks the token version in Redis
 func (r *authRepository) CheckTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint) (string, error) {
 	key := fmt.Sprintf("%s:%d", tokenType.String(), userID)
-	return r.redisClient.Get(ctx, key).Result()
+	return r.redis.Get(ctx, key)
 
 }
 
 // SetTokenVersion sets the token version in Redis
-func (r *authRepository) SetTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint, tokenVersion string, expiresIn int) error {
+func (r *authRepository) SetCacheTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint, tokenVersion string, expiresIn int) error {
 	key := fmt.Sprintf("%s:%d", tokenType.String(), userID)
-	return r.redisClient.Set(ctx, key, tokenVersion, time.Duration(expiresIn)*time.Second).Err()
+	return r.redis.Set(ctx, key, tokenVersion, expiresIn)
+}
+
+// SetUserCache sets user data in Redis
+func (r *authRepository) SetUserCache(ctx context.Context, user *entity.User, expiresIn int) error {
+	key := fmt.Sprintf("user:%d", user.ID)
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user: %w", err)
+	}
+	return r.redis.Set(ctx, key, string(userJson), expiresIn)
+}
+
+// GetUserCache retrieves user data from Redis
+func (r *authRepository) GetUserCache(ctx context.Context, userID uint) (*entity.User, error) {
+	key := fmt.Sprintf("user:%d", userID)
+	userJson, err := r.redis.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	user := entity.User{}
+	if err := json.Unmarshal([]byte(userJson), &user); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// DeleteUserCache deletes user data from Redis
+func (r *authRepository) DeleteUserCache(ctx context.Context, userID uint) error {
+	key := fmt.Sprintf("user:%d", userID)
+	return r.redis.Del(ctx, key)
 }
 
 // InvalidateToken invalidates a token in Redis
 func (r *authRepository) InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint) error {
 	key := fmt.Sprintf("%s:%d", tokenType.String(), userID)
-	return r.redisClient.Del(ctx, key).Err()
+	return r.redis.Del(ctx, key)
 }
 
 // Register registers a new user

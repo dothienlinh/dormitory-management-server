@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"dormitory_management/internal/config"
 	"dormitory_management/internal/delivery/http"
 	"dormitory_management/internal/delivery/http/handler"
 	"dormitory_management/internal/delivery/http/middleware"
+	"dormitory_management/internal/infra/cache"
 	"dormitory_management/internal/infra/database"
-	"dormitory_management/internal/infra/redis"
 	"dormitory_management/internal/repository"
 	"dormitory_management/internal/usecase"
 	"dormitory_management/pkg/logger"
@@ -15,6 +16,8 @@ import (
 )
 
 func main() {
+	context := context.Background()
+
 	// Load configuration
 	cfg := config.LoadConfig()
 
@@ -33,7 +36,7 @@ func main() {
 	}
 
 	// Initialize Redis client
-	rdb, err := redis.NewRedisClient(cfg.Redis)
+	rdb, err := cache.NewRedisClient(cfg.Redis, log, context)
 	if err != nil {
 		log.Fatal("Failed to connect to Redis", err)
 	}

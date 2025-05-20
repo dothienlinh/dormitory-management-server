@@ -12,6 +12,7 @@ type Handlers struct {
 	RoomCategory *RoomCategoryHandler
 	Contract     *ContractHandler
 	Auth         *AuthHandler
+	Dashboard    *DashboardHandler
 }
 
 // NewHandlers creates a new Handlers instance
@@ -22,5 +23,6 @@ func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
 		RoomCategory: NewRoomCategoryHandler(useCases, logger),
 		Contract:     NewContractHandler(useCases, logger),
 		Auth:         NewAuthHandler(useCases, logger),
+		Dashboard:    NewDashboardHandler(useCases, logger),
 	}
 }

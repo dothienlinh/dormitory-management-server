@@ -44,7 +44,7 @@ type User struct {
 	Role        UserRole   `json:"role"`
 	Gender      UserGender `json:"gender"`
 	Status      UserStatus `json:"status"`
-	Phone       *string    `json:"phone"`
+	Phone       string     `json:"phone"`
 	Birthday    *time.Time `json:"birthday"`
 	Avatar      *string    `json:"avatar"`
 	RoomRentID  *uint      `json:"-"`
@@ -65,7 +65,7 @@ type UserSimple struct {
 	Email       string     `json:"email"`
 	Gender      UserGender `json:"gender"`
 	Status      UserStatus `json:"status"`
-	Phone       *string    `json:"phone"`
+	Phone       string     `json:"phone"`
 	Birthday    *time.Time `json:"birthday"`
 	Avatar      *string    `json:"avatar"`
 }
@@ -138,6 +138,7 @@ func (f UserFilter) Build() (string, []interface{}) {
 type UserRegister struct {
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
+	Phone    string `json:"phone" binding:"required"`
 	Password string `json:"password" binding:"required,min=8"`
 }
 
@@ -161,7 +162,7 @@ type UserDTO struct {
 	Role        UserRole   `json:"role"`
 	Gender      UserGender `json:"gender"`
 	Status      UserStatus `json:"status"`
-	Phone       *string    `json:"phone"`
+	Phone       string     `json:"phone"`
 	Birthday    *time.Time `json:"birthday"`
 	Avatar      *string    `json:"avatar"`
 	RoomRent    *RoomRent  `json:"room_rent,omitempty"`

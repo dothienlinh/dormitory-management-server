@@ -11,7 +11,16 @@ type AuthRepository interface {
 	CheckTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint) (string, error)
 
 	// SetTokenVersion sets the token version in the repository
-	SetTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint, tokenVersion string, expiresIn int) error
+	SetCacheTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint, tokenVersion string, expiresIn int) error
+
+	// SetUserCache sets user data in the cache
+	SetUserCache(ctx context.Context, user *entity.User, expiresIn int) error
+
+	// GetUserCache retrieves user data from the cache
+	GetUserCache(ctx context.Context, userID uint) (*entity.User, error)
+
+	// DeleteUserCache deletes user data from the cache
+	DeleteUserCache(ctx context.Context, userID uint) error
 
 	// InvalidateToken invalidates a token in the repository
 	InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint) error

@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -150,13 +151,48 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// Get user
+		user, err := m.repos.Auth().GetUserCache(c, claims.UserID)
+		if errors.Is(err, redis.Nil) {
+			user, err := m.repos.User().GetByID(c, claims.UserID)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "User not found", "error": "Unauthorized"})
+				c.Abort()
+				return
+			}
+
+			// Set user cache
+			err = m.repos.Auth().SetUserCache(c, user, m.config.JWT.AccessExpiresIn)
+			if err != nil {
+				m.logger.Error("Failed to set user cache", zap.Error(err))
+				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to set user cache", "error": "Internal Server Error"})
+				c.Abort()
+				return
+			}
+
+			// Set user in context
+			m.setUserInContext(c, user)
+			c.Next()
+			return
+		}
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "User not found", "error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+
 		// Set the user ID and role in the context
-		c.Set("userID", claims.UserID)
-		c.Set("userRole", claims.Role)
-		c.Set("userEmail", claims.Email)
+		m.setUserInContext(c, user)
 
 		c.Next()
 	}
+}
+
+func (m *Middleware) setUserInContext(c *gin.Context, user *entity.User) {
+	c.Set("userID", user.ID)
+	c.Set("userRole", user.Role)
+	c.Set("userEmail", user.Email)
 }
 
 // AdminMiddleware ensures the user has admin role

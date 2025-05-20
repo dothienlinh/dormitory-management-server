@@ -66,7 +66,7 @@ func (uc *userUseCase) UpdateUser(ctx context.Context, id uint, userData *entity
 	if userData.Status != "" {
 		user.Status = userData.Status
 	}
-	if userData.Phone != nil {
+	if userData.Phone != "" {
 		user.Phone = userData.Phone
 	}
 	if userData.Birthday != nil {

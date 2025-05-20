@@ -3,6 +3,7 @@ package database
 import (
 	"dormitory_management/internal/config"
 	"fmt"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -37,6 +38,7 @@ func NewPostgresDB(cfg config.DatabaseConfig) (*gorm.DB, error) {
 	// Set connection pool settings
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxIdleTime(time.Hour)
 
 	return db, nil
 }

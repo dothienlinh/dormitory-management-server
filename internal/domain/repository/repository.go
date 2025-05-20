@@ -7,4 +7,5 @@ type Repositories interface {
 	RoomCategory() RoomCategoryRepository
 	Contract() ContractRepository
 	Auth() AuthRepository
+	Dashboard() DashboardRepository
 }

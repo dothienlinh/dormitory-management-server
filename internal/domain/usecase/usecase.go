@@ -7,4 +7,5 @@ type UseCases interface {
 	RoomCategory() RoomCategoryUseCase
 	Contract() ContractUseCase
 	Auth() AuthUseCase
+	Dashboard() DashboardUseCase
 }
