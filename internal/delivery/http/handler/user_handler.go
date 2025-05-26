@@ -2,9 +2,9 @@ package handler
 
 import (
 	"dormitory_management/internal/domain/entity"
+	"dormitory_management/internal/domain/response"
 	"dormitory_management/internal/domain/usecase"
 	"dormitory_management/pkg/logger"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -28,20 +28,19 @@ func NewUserHandler(useCases usecase.UseCases, logger logger.Logger) *UserHandle
 // GetUserByID handles the request to get a user by ID
 func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var resp response.StatusResponse
+
 		h.logger.Info("GetUserByID")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
 			h.logger.Error("Failed to parse user ID", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "Invalid user ID",
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest("Invalid user ID")
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
-		resp := h.useCases.User().GetUserByID(c, uint(id))
+		resp = h.useCases.User().GetUserByID(c, uint(id))
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -49,20 +48,18 @@ func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 // GetListUsers handles the request to get a list of users
 func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var resp response.StatusResponse
 		h.logger.Info("GetListUsers")
 
 		var filter entity.UserFilter
 		if err := c.ShouldBindQuery(&filter); err != nil {
 			h.logger.Error("Failed to bind query parameters", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": err.Error(),
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
-		resp := h.useCases.User().GetListUsers(c, &filter)
+		resp = h.useCases.User().GetListUsers(c, &filter)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -70,31 +67,26 @@ func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 // UpdateUser handles the request to update a user
 func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var resp response.StatusResponse
 		h.logger.Info("UpdateUser")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
 			h.logger.Error("Failed to parse user ID", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "Invalid user ID",
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest("Invalid user ID")
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
 		var user entity.User
 		if err := c.ShouldBindJSON(&user); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": err.Error(),
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
-		resp := h.useCases.User().UpdateUser(c, uint(id), &user)
+		resp = h.useCases.User().UpdateUser(c, uint(id), &user)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -102,20 +94,18 @@ func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 // DeleteUser handles the request to delete a user
 func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var resp response.StatusResponse
 		h.logger.Info("DeleteUser")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
 			h.logger.Error("Failed to parse user ID", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "Invalid user ID",
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest("Invalid user ID")
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
-		resp := h.useCases.User().DeleteUser(c, uint(id))
+		resp = h.useCases.User().DeleteUser(c, uint(id))
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -123,20 +113,18 @@ func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 // AddUserToRoom handles the request to add a user to a room
 func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var resp response.StatusResponse
 		h.logger.Info("AddUserToRoom")
 
 		var payload entity.CreateRoomRent
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": err.Error(),
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
-		resp := h.useCases.User().AddUserToRoom(c, payload)
+		resp = h.useCases.User().AddUserToRoom(c, payload)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -144,21 +132,19 @@ func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 // RemoveUserFromRoom handles the request to remove a user from a room
 func (h *UserHandler) RemoveUserFromRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var resp response.StatusResponse
 		h.logger.Info("RemoveUserFromRoom")
 
 		var payload entity.RemoveUserFromRoom
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": err.Error(),
-				"error":   "Bad Request",
-			})
+			resp = response.BadRequest(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			return
 		}
 
-		resp := h.useCases.User().RemoveUserFromRoom(c, payload)
+		resp = h.useCases.User().RemoveUserFromRoom(c, payload)
 		c.JSON(resp.Status, resp.Response)
 	}
 }

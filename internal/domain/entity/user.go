@@ -37,20 +37,20 @@ const (
 // User entity
 type User struct {
 	Base
-	FullName    string     `json:"full_name"`
-	StudentCode string     `json:"student_code"`
-	Email       string     `json:"email"`
-	Password    string     `json:"-"`
-	Role        UserRole   `json:"role"`
-	Gender      UserGender `json:"gender"`
-	Status      UserStatus `json:"status"`
-	Phone       string     `json:"phone"`
-	Birthday    *time.Time `json:"birthday"`
-	Avatar      *string    `json:"avatar"`
-	RoomRentID  *uint      `json:"-"`
-	RoomRent    *RoomRent  `json:"room_rent"`
-	ContractID  *uint      `json:"-"`
-	Contract    *Contract  `json:"contract"`
+	FullName    string      `json:"full_name"`
+	StudentCode string      `json:"student_code"`
+	Email       string      `json:"email"`
+	Password    string      `json:"-"`
+	Role        UserRole    `json:"role"`
+	Gender      UserGender  `json:"gender"`
+	Status      UserStatus  `json:"status"`
+	Phone       string      `json:"phone"`
+	Birthday    *time.Time  `json:"birthday"`
+	Avatar      *string     `json:"avatar"`
+	RoomRentID  *uint       `json:"-"`
+	RoomRent    *RoomRent   `json:"room_rent"`
+	Contracts   *[]Contract `json:"contracts"`
+	Payments    *[]Payment  `json:"payments"`
 }
 
 func (User) TableName() string {

@@ -6,6 +6,7 @@ import (
 	"dormitory_management/internal/delivery/http/middleware"
 	"dormitory_management/internal/delivery/http/router"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -27,7 +28,7 @@ func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Mi
 	ginRouter := gin.New()
 
 	// Use middlewares
-	ginRouter.Use(gin.Recovery())
+	ginRouter.Use(gin.CustomRecovery(mw.CustomRecovery()))
 	ginRouter.Use(mw.LoggerMiddleware())
 	ginRouter.Use(mw.ErrorMiddleware())
 
@@ -40,6 +41,18 @@ func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Mi
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	// ping
+	ginRouter.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, map[string]string{
+			"message": "pong",
+		})
+	})
+
+	// webhook
+	ginRouter.GET("/answerurl", func(ctx *gin.Context) {
+		log.Println("=======================================================================>answerurl<=======================================================================")
+	})
 
 	// Set up routes
 	router.SetupRoutes(ginRouter, handlers, mw)

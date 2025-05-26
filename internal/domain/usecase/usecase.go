@@ -8,4 +8,5 @@ type UseCases interface {
 	Contract() ContractUseCase
 	Auth() AuthUseCase
 	Dashboard() DashboardUseCase
+	Email() EmailUseCase
 }

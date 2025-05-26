@@ -9,22 +9,19 @@ import (
 
 // repositories implements the repository.Repositories interface
 type repositories struct {
-	db           *gorm.DB
-	redisClient  *cache.RedisClient
 	user         repository.UserRepository
 	room         repository.RoomRepository
 	roomCategory repository.RoomCategoryRepository
 	contract     repository.ContractRepository
 	auth         repository.AuthRepository
 	dashboard    repository.DashboardRepository
+	email        repository.EmailRepository
+	otpCode      repository.OtpCodeRepository
 }
 
 // NewRepositories creates a new Repositories instance
 func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Repositories {
-	repos := &repositories{
-		db:          db,
-		redisClient: redisClient,
-	}
+	repos := &repositories{}
 
 	repos.user = NewUserRepository(db)
 	repos.room = NewRoomRepository(db)
@@ -32,6 +29,8 @@ func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Rep
 	repos.contract = NewContractRepository(db)
 	repos.auth = NewAuthRepository(db, redisClient)
 	repos.dashboard = NewDashboardRepository(db)
+	repos.email = NewEmailRepository(db)
+	repos.otpCode = NewOtpCodeRepository(db)
 
 	return repos
 }
@@ -64,4 +63,14 @@ func (r *repositories) Auth() repository.AuthRepository {
 // Dashboard returns the dashboard repository
 func (r *repositories) Dashboard() repository.DashboardRepository {
 	return r.dashboard
+}
+
+// OtpCode returns the OTP code repository
+func (r *repositories) OtpCode() repository.OtpCodeRepository {
+	return r.otpCode
+}
+
+// Email returns the email repository
+func (r *repositories) Email() repository.EmailRepository {
+	return r.email
 }

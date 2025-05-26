@@ -7,6 +7,7 @@ import (
 	"dormitory_management/internal/domain/repository"
 	"dormitory_management/internal/domain/response"
 	"dormitory_management/internal/domain/usecase"
+	"dormitory_management/internal/helper"
 	"dormitory_management/pkg/logger"
 	"errors"
 	"fmt"
@@ -121,16 +122,36 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 		return response.InternalServerError("Failed to generate tokens")
 	}
 
+	secretKey := uc.config.Server.SecretKey
+
+	encryptAccessToken, err := helper.Encrypt(accessToken, secretKey)
+	if err != nil {
+		uc.logger.Error("Failed encrypt access token", zap.Error(err))
+		return response.InternalServerError("Failed encrypt access token")
+	}
+
+	encryptRefreshToken, err := helper.Encrypt(refreshToken, secretKey)
+	if err != nil {
+		uc.logger.Error("Failed encrypt refresh token", zap.Error(err))
+		return response.InternalServerError("Failed encrypt refresh token")
+	}
+
 	return response.Success(map[string]interface{}{
 		"user":          user,
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
+		"access_token":  encryptAccessToken,
+		"refresh_token": encryptRefreshToken,
 	}, 1)
 }
 
 // RefreshToken refreshes an access token
 func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) response.StatusResponse {
-	token, err := jwt.ParseWithClaims(refreshToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	decryptRefreshToken, err := helper.Decrypt(refreshToken, uc.config.Server.SecretKey)
+	if err != nil {
+		uc.logger.Error("Failed to decrypt token", zap.Error(err))
+		return response.Unauthorized(err.Error())
+	}
+
+	token, err := jwt.ParseWithClaims(decryptRefreshToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -177,8 +198,14 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 		return response.InternalServerError("Failed to create access token")
 	}
 
+	encryptAccessToken, err := helper.Encrypt(accessToken, uc.config.Server.SecretKey)
+	if err != nil {
+		uc.logger.Error("Failed encrypt access token", zap.Error(err))
+		return response.InternalServerError("Failed encrypt access token")
+	}
+
 	return response.Success(map[string]interface{}{
-		"access_token": accessToken,
+		"access_token": encryptAccessToken,
 	}, 1)
 }
 

@@ -6,6 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type BaseModel interface {
+	TableName() string
+}
+
 // Base model for all entities
 type Base struct {
 	ID        uint           `json:"id"`

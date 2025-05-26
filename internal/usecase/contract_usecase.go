@@ -29,7 +29,7 @@ func NewContractUseCase(repos repository.Repositories, logger logger.Logger) use
 // CreateContract creates a new contract
 func (uc *contractUseCase) CreateContract(ctx context.Context, contract *entity.Contract) response.StatusResponse {
 	// Validate user
-	user, err := uc.repos.User().GetByID(ctx, contract.UserID)
+	_, err := uc.repos.User().GetByID(ctx, contract.UserID)
 	if err != nil {
 		uc.logger.Error("Failed to validate user", zap.Error(err))
 		return response.BadRequest("Invalid user")
@@ -42,11 +42,6 @@ func (uc *contractUseCase) CreateContract(ctx context.Context, contract *entity.
 		return response.BadRequest("Invalid room")
 	}
 
-	// Check if user already has a contract
-	if user.ContractID != nil {
-		return response.BadRequest("User already has an active contract")
-	}
-
 	// Set contract price from room category if not specified
 	if contract.Price == 0 {
 		contract.Price = room.RoomCategory.Price
@@ -55,13 +50,6 @@ func (uc *contractUseCase) CreateContract(ctx context.Context, contract *entity.
 	if err := uc.repos.Contract().Create(ctx, contract); err != nil {
 		uc.logger.Error("Failed to create contract", zap.Error(err))
 		return response.InternalServerError("Failed to create contract")
-	}
-
-	// Update user with contract ID
-	user.ContractID = &contract.ID
-	if err := uc.repos.User().Update(ctx, user); err != nil {
-		uc.logger.Error("Failed to update user with contract", zap.Error(err))
-		return response.InternalServerError("Failed to update user with contract")
 	}
 
 	return response.Created(contract)
@@ -135,20 +123,10 @@ func (uc *contractUseCase) UpdateContract(ctx context.Context, id uint, updateDa
 
 // DeleteContract deletes a contract
 func (uc *contractUseCase) DeleteContract(ctx context.Context, id uint) response.StatusResponse {
-	contract, err := uc.repos.Contract().GetByID(ctx, id)
+	_, err := uc.repos.Contract().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get contract for deletion", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("Contract with ID %d not found", id))
-	}
-
-	// Get user to remove contract reference
-	user, err := uc.repos.User().GetByID(ctx, contract.UserID)
-	if err == nil && user.ContractID != nil && *user.ContractID == id {
-		user.ContractID = nil
-		if err := uc.repos.User().Update(ctx, user); err != nil {
-			uc.logger.Error("Failed to update user contract reference", zap.Error(err))
-			// Continue with deletion anyway
-		}
 	}
 
 	if err := uc.repos.Contract().Delete(ctx, id); err != nil {

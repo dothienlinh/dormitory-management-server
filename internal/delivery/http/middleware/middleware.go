@@ -4,6 +4,8 @@ import (
 	"dormitory_management/internal/config"
 	"dormitory_management/internal/domain/entity"
 	"dormitory_management/internal/domain/repository"
+	"dormitory_management/internal/domain/response"
+	"dormitory_management/internal/helper"
 	"dormitory_management/pkg/logger"
 	"errors"
 	"fmt"
@@ -88,41 +90,52 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Authorization header is required", "error": "Unauthorized"})
+			resp := response.Unauthorized("Authorization header is required")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
 
 		// Check if the header has the "Bearer " prefix
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid authorization format", "error": "Unauthorized"})
+			resp := response.Unauthorized("Invalid authorization format")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
 
 		// Extract the token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		decryptToken, err := helper.Decrypt(tokenString, m.config.Server.SecretKey)
+		if err != nil {
+			m.logger.Error("Failed to decrypt token", zap.Error(err))
+			resp := response.Unauthorized(err.Error())
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
 
 		// Parse and validate the token
-		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(decryptToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			// Validate the signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return []byte(m.config.JWT.AccessSecret), nil
 		})
-
 		if err != nil {
 			m.logger.Error("Failed to parse token", zap.Error(err))
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid or expired token", "error": "Unauthorized"})
+			resp := response.Unauthorized(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
 
 		// Check if the token is valid
 		if !token.Valid {
-			m.logger.Error("Invalid token", zap.Error(err))
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid token", "error": "Unauthorized"})
+			m.logger.Error("Invalid token")
+			resp := response.Unauthorized("Invalid token")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
@@ -130,8 +143,9 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 		// Extract the claims from the token
 		claims, ok := token.Claims.(*Claims)
 		if !ok {
-			m.logger.Error("Failed to extract claims from token", zap.Error(err))
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Failed to extract claims from token", "error": "Unauthorized"})
+			m.logger.Error("Failed to extract claims from token")
+			resp := response.Unauthorized("Failed to extract claims from token")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
@@ -139,14 +153,16 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 		tokenVersion, err := m.repos.Auth().CheckTokenVersion(c, entity.AccessToken, claims.UserID)
 		if err != nil {
 			m.logger.Error("Failed to check token version", zap.Error(err))
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid token", "error": "Unauthorized"})
+			resp := response.Unauthorized(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
 
 		if tokenVersion != claims.TokenVersion {
 			m.logger.Error("Invalid token version", zap.Error(err))
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid token", "error": "Unauthorized"})
+			resp := response.Unauthorized("Invalid token version")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
@@ -156,7 +172,8 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 		if errors.Is(err, redis.Nil) {
 			user, err := m.repos.User().GetByID(c, claims.UserID)
 			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "User not found", "error": "Unauthorized"})
+				resp := response.Unauthorized(err.Error())
+				c.JSON(resp.Status, resp.Response)
 				c.Abort()
 				return
 			}
@@ -165,7 +182,8 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			err = m.repos.Auth().SetUserCache(c, user, m.config.JWT.AccessExpiresIn)
 			if err != nil {
 				m.logger.Error("Failed to set user cache", zap.Error(err))
-				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to set user cache", "error": "Internal Server Error"})
+				resp := response.InternalServerError(err.Error())
+				c.JSON(resp.Status, resp.Response)
 				c.Abort()
 				return
 			}
@@ -177,7 +195,8 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "User not found", "error": "Unauthorized"})
+			resp := response.Unauthorized(err.Error())
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
@@ -201,14 +220,16 @@ func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 		// This assumes AuthMiddleware has already been run
 		role, exists := c.Get("userRole")
 		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "User role not found", "error": "Unauthorized"})
+			resp := response.Unauthorized("User role not found")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
 
 		// Check if user is admin
 		if role != string(entity.UserRoleAdmin) {
-			c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "Admin access required", "error": "Forbidden"})
+			resp := response.Unauthorized("Admin access required")
+			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return
 		}
@@ -227,24 +248,24 @@ func (m *Middleware) ErrorMiddleware() gin.HandlerFunc {
 			err := c.Errors.Last().Err
 			m.logger.Error("API error", zap.Error(err))
 
-			var statusCode int
-			var message string
+			var resp response.StatusResponse
 
 			// Determine the type of error and set the appropriate status code and message
 			switch {
 			case errors.Is(err, gorm.ErrRecordNotFound):
-				statusCode = http.StatusNotFound
-				message = "Resource not found"
+				resp = response.NotFound("Resource not found")
 			default:
-				statusCode = http.StatusInternalServerError
-				message = "Internal server error"
+				resp = response.InternalServerError("Internal server error")
 			}
 
-			c.JSON(statusCode, gin.H{
-				"success": false,
-				"message": message,
-				"error":   err.Error(),
-			})
+			c.JSON(resp.Status, resp.Response)
 		}
+	}
+}
+
+func (m *Middleware) CustomRecovery() gin.RecoveryFunc {
+	return func(c *gin.Context, err any) {
+		resp := response.InternalServerError("Internal server error")
+		c.JSON(resp.Status, resp.Response)
 	}
 }
