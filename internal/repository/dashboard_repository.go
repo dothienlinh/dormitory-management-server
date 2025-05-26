@@ -38,9 +38,9 @@ func (r *dashboardRepository) GetStats(ctx context.Context) (*entity.DashboardSt
 		return nil, err
 	}
 
-	// if err := r.db.WithContext(ctx).Table(entity.Contract{}.TableName()).Select("MONTH(created_at) as month, SUM(amount) as amount").Group("MONTH(created_at)").Scan(&stats.MonthRevenue).Error; err != nil {
-	// 	return nil, err
-	// }
+	if err := r.db.WithContext(ctx).Table(entity.Payment{}.TableName()).Select("MONTH(created_at) as month, SUM(amount) as amount").Group("MONTH(created_at)").Scan(&stats.MonthRevenue).Error; err != nil {
+		return nil, err
+	}
 
 	return stats, nil
 }

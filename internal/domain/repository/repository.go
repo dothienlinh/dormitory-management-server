@@ -8,4 +8,6 @@ type Repositories interface {
 	Contract() ContractRepository
 	Auth() AuthRepository
 	Dashboard() DashboardRepository
+	Email() EmailRepository
+	OtpCode() OtpCodeRepository
 }
