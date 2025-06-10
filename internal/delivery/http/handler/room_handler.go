@@ -31,11 +31,10 @@ func (h *RoomHandler) CreateRoom() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("CreateRoom")
 
-		var room entity.Room
+		var room entity.CreateRoom
 		if err := c.ShouldBindJSON(&room); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
@@ -96,11 +95,10 @@ func (h *RoomHandler) UpdateRoom() gin.HandlerFunc {
 			return
 		}
 
-		var room entity.Room
+		var room entity.UpdateRoom
 		if err := c.ShouldBindJSON(&room); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
@@ -148,11 +146,10 @@ func (h *RoomCategoryHandler) CreateRoomCategory() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("CreateRoomCategory")
 
-		var category entity.RoomCategory
+		var category entity.CreateRoomCategory
 		if err := c.ShouldBindJSON(&category); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
@@ -213,11 +210,10 @@ func (h *RoomCategoryHandler) UpdateRoomCategory() gin.HandlerFunc {
 			return
 		}
 
-		var category entity.RoomCategory
+		var category entity.UpdateRoomCategory
 		if err := c.ShouldBindJSON(&category); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 

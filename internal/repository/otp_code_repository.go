@@ -17,21 +17,20 @@ func NewOtpCodeRepository(db *gorm.DB) *OtpCodeRepository {
 	return &OtpCodeRepository{db: db}
 }
 
-func (r *OtpCodeRepository) FindCodeByCode(ctx context.Context, otpCode string) (*entity.OtpCode, error) {
-	var code entity.OtpCode
+func (r *OtpCodeRepository) FindCode(ctx context.Context, otpCode *entity.OtpCode) error {
 
-	if err := r.db.WithContext(ctx).Table(code.TableName()).Where(&entity.OtpCode{OtpCode: otpCode}).First(&code).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(otpCode.TableName()).Where(otpCode).First(&otpCode).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		return err
 	}
 
-	return &code, nil
+	return nil
 }
 
-func (r *OtpCodeRepository) CreateOtpCode(ctx context.Context, otpCode *entity.CreateOtpCode) error {
-	return r.db.WithContext(ctx).Table(entity.OtpCode{}.TableName()).Create(otpCode).Error
+func (r *OtpCodeRepository) CreateOtpCode(ctx context.Context, payload *entity.OtpCode) error {
+	return r.db.WithContext(ctx).Table(payload.TableName()).Create(payload).Error
 }
 
 func (r *OtpCodeRepository) UseOtpCode(ctx context.Context, otpCodeId uint) error {

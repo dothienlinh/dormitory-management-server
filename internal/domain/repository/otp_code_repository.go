@@ -6,7 +6,7 @@ import (
 )
 
 type OtpCodeRepository interface {
-	FindCodeByCode(ctx context.Context, otpCode string) (*entity.OtpCode, error)
-	CreateOtpCode(ctx context.Context, otpCode *entity.CreateOtpCode) error
+	FindCode(ctx context.Context, otpCode *entity.OtpCode) error
+	CreateOtpCode(ctx context.Context, otpCode *entity.OtpCode) error
 	UseOtpCode(ctx context.Context, otpCodeId uint) error
 }

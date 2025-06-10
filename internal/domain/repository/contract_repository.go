@@ -8,7 +8,7 @@ import (
 // ContractRepository defines the interface for contract data operations
 type ContractRepository interface {
 	// Create a new contract
-	Create(ctx context.Context, contract *entity.Contract) error
+	Create(ctx context.Context, contract *entity.CreateContract) error
 
 	// GetByID retrieves a contract by ID
 	GetByID(ctx context.Context, id uint) (*entity.Contract, error)

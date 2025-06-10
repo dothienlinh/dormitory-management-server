@@ -31,7 +31,21 @@ func NewEmailUseCase(repos repository.Repositories, logger logger.Logger, asynqC
 }
 
 func (uc *emailUseCase) SendOTP(ctx context.Context, payload entity.SendCodeEmail) (*asynq.TaskInfo, error) {
-	jsonPayload, err := json.Marshal(payload)
+	otpCode := &entity.OtpCode{
+		OtpCode:        common.GenerateCode(6),
+		Identifier:     payload.Email,
+		IdentifierType: entity.IdentifierTypeEmail.String(),
+		IsUsed:         false,
+		OtpType:        entity.OtpTypeVerifyEmail.String(),
+		ExpiresAt:      common.GetExpireTime(15),
+	}
+
+	if err := uc.repos.OtpCode().CreateOtpCode(ctx, otpCode); err != nil {
+		uc.logger.Error("Failed to create OTP code", zap.Error(err))
+		return nil, err
+	}
+
+	jsonPayload, err := json.Marshal(otpCode)
 	if err != nil {
 		uc.logger.Error("Failed to marshal payload", zap.Error(err))
 		return nil, err
@@ -43,13 +57,16 @@ func (uc *emailUseCase) SendOTP(ctx context.Context, payload entity.SendCodeEmai
 }
 
 func (uc *emailUseCase) VerifyCodeEmail(ctx context.Context, payload entity.VerifyCodeEmail) response.StatusResponse {
-	otpCode, err := uc.repos.OtpCode().FindCodeByCode(ctx, payload.Code)
-	if err != nil {
+	otpCode := &entity.OtpCode{
+		Identifier: payload.Email,
+		OtpCode:    payload.Code,
+	}
+	if err := uc.repos.OtpCode().FindCode(ctx, otpCode); err != nil {
 		uc.logger.Error("Failed to find OTP code", zap.Error(err))
 		return response.InternalServerError("Failed to verify OTP code")
 	}
 
-	if otpCode == nil {
+	if otpCode.ID == 0 {
 		uc.logger.Error("OTP code not found")
 		return response.NotFound("OTP code not found")
 	}

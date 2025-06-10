@@ -34,22 +34,22 @@ func (Contract) TableName() string {
 
 // CreateContract is the data transfer object for creating a contract
 type CreateContract struct {
-	UserID      uint           `json:"user_id" binding:"required"`
-	RoomID      uint           `json:"room_id" binding:"required"`
-	StartDate   time.Time      `json:"start_date" binding:"required"`
-	EndDate     time.Time      `json:"end_date" binding:"required"`
-	Price       float64        `json:"price" binding:"required"`
+	UserID      uint           `json:"user_id" binding:"required,numeric"`
+	RoomID      uint           `json:"room_id" binding:"required,numeric"`
+	StartDate   time.Time      `json:"start_date" binding:"required,datetime"`
+	EndDate     time.Time      `json:"end_date" binding:"required,datetime"`
+	Price       float64        `json:"price" binding:"required,numeric"`
 	Status      ContractStatus `json:"status" binding:"omitempty,oneof=active inactive cancelled"`
-	Description string         `json:"description"`
+	Description string         `json:"description" binding:"omitempty"`
 }
 
 // UpdateContract is the data transfer object for updating a contract
 type UpdateContract struct {
-	Status      ContractStatus `json:"status" binding:"omitempty,oneof=active inactive cancelled"`
-	StartDate   *time.Time     `json:"start_date"`
-	EndDate     *time.Time     `json:"end_date"`
-	Price       *float64       `json:"price"`
-	Description *string        `json:"description"`
+	Status      ContractStatus `json:"status" binding:"required,oneof=active inactive cancelled"`
+	StartDate   *time.Time     `json:"start_date" binding:"omitempty,datetime"`
+	EndDate     *time.Time     `json:"end_date" binding:"omitempty,datetime"`
+	Price       *float64       `json:"price" binding:"omitempty,numeric"`
+	Description *string        `json:"description" binding:"omitempty"`
 }
 
 // ContractDTO is a data transfer object for Contract entity

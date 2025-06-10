@@ -6,11 +6,12 @@ import (
 
 // Response is the standard API response format
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-	Total   int64       `json:"total,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Success bool              `json:"success"`
+	Message string            `json:"message"`
+	Data    interface{}       `json:"data,omitempty"`
+	Total   int64             `json:"total,omitempty"`
+	Error   string            `json:"error,omitempty"`
+	Errors  map[string]string `json:"errors,omitempty"`
 }
 
 // SuccessResponse returns a success response
@@ -115,5 +116,17 @@ func DBError(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusInternalServerError,
 		ErrorResponse(message, "Database Error"),
+	)
+}
+
+// Validation returns a validation status response
+func Validation(message string, errors map[string]string) StatusResponse {
+	return NewStatusResponse(
+		http.StatusBadRequest,
+		Response{
+			Success: false,
+			Message: message,
+			Errors:  errors,
+		},
 	)
 }

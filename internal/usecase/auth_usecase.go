@@ -2,19 +2,23 @@ package usecase
 
 import (
 	"context"
+	"dormitory_management/internal/common"
 	"dormitory_management/internal/config"
+	"dormitory_management/internal/delivery/mq/tasks"
 	"dormitory_management/internal/domain/entity"
 	"dormitory_management/internal/domain/repository"
 	"dormitory_management/internal/domain/response"
 	"dormitory_management/internal/domain/usecase"
 	"dormitory_management/internal/helper"
 	"dormitory_management/pkg/logger"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -30,18 +34,20 @@ type Claims struct {
 
 // authUseCase implements the usecase.AuthUseCase interface
 type authUseCase struct {
-	repos  repository.Repositories
-	logger logger.Logger
-	config *config.Config
+	repos       repository.Repositories
+	logger      logger.Logger
+	config      *config.Config
+	asynqClient *asynq.Client
 }
 
 // NewAuthUseCase creates a new auth use case
-func NewAuthUseCase(repos repository.Repositories, logger logger.Logger) usecase.AuthUseCase {
+func NewAuthUseCase(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.AuthUseCase {
 	cfg := config.LoadConfig()
 	return &authUseCase{
-		repos:  repos,
-		logger: logger,
-		config: cfg,
+		repos:       repos,
+		logger:      logger,
+		config:      cfg,
+		asynqClient: asynqClient,
 	}
 }
 
@@ -63,11 +69,32 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		Gender:   entity.UserGenderOther,
 		Status:   entity.UserStatusActive,
 	}
+	otpCode := &entity.OtpCode{
+		IsUsed:         false,
+		OtpCode:        common.GenerateCode(6),
+		UserID:         &user.ID,
+		IdentifierType: entity.IdentifierTypeEmail.String(),
+		Identifier:     user.Email,
+		OtpType:        entity.OtpTypeVerifyEmail.String(),
+		ExpiresAt:      common.GetExpireTime(15),
+	}
 
-	if err := uc.repos.Auth().Register(ctx, user); err != nil {
+	if err := uc.repos.Auth().Register(ctx, user, otpCode); err != nil {
 		uc.logger.Error("Failed to register user", zap.Error(err))
 		return response.InternalServerError("Failed to register user")
 	}
+
+	jsonPayload, err := json.Marshal(&entity.SendMailVerifyAccount{
+		UserID: user.ID,
+		Email:  user.Email,
+		Token:  uuid.New().String(),
+	})
+	if err != nil {
+		uc.logger.Error("Failed to marshal payload", zap.Error(err))
+		return response.InternalServerError("Failed send mail verify account")
+	}
+	task := asynq.NewTask(string(tasks.TypeSendEmailVerifyAccount), jsonPayload)
+	uc.asynqClient.EnqueueContext(ctx, task)
 
 	return response.Success(user, 1)
 }
@@ -113,6 +140,11 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 	if err != nil {
 		uc.logger.Error("Login failed", zap.Error(err))
 		return response.Unauthorized("Invalid email or password")
+	}
+
+	if !user.IsVerify {
+		uc.logger.Error("Unverified user")
+		return response.Forbidden("Unverified user")
 	}
 
 	// Generate tokens
@@ -250,6 +282,16 @@ func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint) (string,
 	return accessToken, refreshToken, nil
 }
 
+func (uc *authUseCase) createToken(tokenClaims Claims) (string, error) {
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
+	accessTokenString, err := accessToken.SignedString([]byte(uc.config.JWT.AccessSecret))
+	if err != nil {
+		return "", fmt.Errorf("failed to sign access token: %w", err)
+	}
+
+	return accessTokenString, nil
+}
+
 // createAccessToken creates an access token
 func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User) (string, error) {
 	expiresIn := uc.config.JWT.AccessExpiresIn
@@ -268,10 +310,9 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 		},
 	}
 
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(uc.config.JWT.AccessSecret))
+	accessToken, err := uc.createToken(accessTokenClaims)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign access token: %w", err)
+		return "", err
 	}
 
 	if err := uc.repos.Auth().SetCacheTokenVersion(ctx, entity.AccessToken, user.ID, string(uuid.String()), expiresIn); err != nil {
@@ -284,7 +325,7 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 		return "", fmt.Errorf("failed to set user cache: %w", err)
 	}
 
-	return accessTokenString, nil
+	return accessToken, nil
 }
 
 // createRefreshToken creates a refresh token
@@ -304,10 +345,9 @@ func (uc *authUseCase) createRefreshToken(ctx context.Context, user *entity.User
 		},
 	}
 
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenClaims)
-	refreshTokenString, err := refreshToken.SignedString([]byte(uc.config.JWT.RefreshSecret))
+	refreshToken, err := uc.createToken(refreshTokenClaims)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign refresh token: %w", err)
+		return "", err
 	}
 
 	if err := uc.repos.Auth().SetCacheTokenVersion(ctx, entity.RefreshToken, user.ID, string(uuid.String()), uc.config.JWT.RefreshExpiresIn); err != nil {
@@ -315,5 +355,5 @@ func (uc *authUseCase) createRefreshToken(ctx context.Context, user *entity.User
 		return "", fmt.Errorf("failed to set token version: %w", err)
 	}
 
-	return refreshTokenString, nil
+	return refreshToken, nil
 }

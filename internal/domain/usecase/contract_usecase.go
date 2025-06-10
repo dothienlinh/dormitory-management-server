@@ -9,7 +9,7 @@ import (
 // ContractUseCase defines the interface for contract business logic
 type ContractUseCase interface {
 	// CreateContract creates a new contract
-	CreateContract(ctx context.Context, contract *entity.Contract) response.StatusResponse
+	CreateContract(ctx context.Context, contract *entity.CreateContract) response.StatusResponse
 
 	// GetContractByID retrieves a contract by ID
 	GetContractByID(ctx context.Context, id uint) response.StatusResponse

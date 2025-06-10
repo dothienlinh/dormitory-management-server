@@ -27,7 +27,7 @@ func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClien
 	useCases.room = NewRoomUseCase(repos, logger)
 	useCases.roomCategory = NewRoomCategoryUseCase(repos, logger)
 	useCases.contract = NewContractUseCase(repos, logger)
-	useCases.auth = NewAuthUseCase(repos, logger)
+	useCases.auth = NewAuthUseCase(repos, logger, asynqClient)
 	useCases.dashboard = NewDashboardUseCase(repos, logger)
 	useCases.email = NewEmailUseCase(repos, logger, asynqClient)
 

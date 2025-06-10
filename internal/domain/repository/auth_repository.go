@@ -26,7 +26,7 @@ type AuthRepository interface {
 	InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint) error
 
 	// Register registers a new user
-	Register(ctx context.Context, user *entity.User) error
+	Register(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error
 
 	// Login authenticates a user and returns user data
 	Login(ctx context.Context, email, password string) (*entity.User, error)

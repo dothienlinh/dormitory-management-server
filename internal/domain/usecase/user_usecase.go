@@ -21,8 +21,8 @@ type UserUseCase interface {
 	DeleteUser(ctx context.Context, id uint) response.StatusResponse
 
 	// AddUserToRoom adds a user to a room
-	AddUserToRoom(ctx context.Context, payload entity.CreateRoomRent) response.StatusResponse
+	AddUserToRoom(ctx context.Context, payload entity.AddUserToRoom) response.StatusResponse
 
-	// RemoveUserFromRoom removes a user from a room
-	RemoveUserFromRoom(ctx context.Context, payload entity.RemoveUserFromRoom) response.StatusResponse
+	// UserLeavesRoom removes a user from a room
+	UserLeavesRoom(ctx context.Context, payload entity.UserLeavesRoom) response.StatusResponse
 }

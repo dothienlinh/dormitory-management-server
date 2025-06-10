@@ -71,7 +71,6 @@ server/
 │   │   │   ├── contract.go                   # Contract entity
 │   │   │   ├── room.go                       # Room entity
 │   │   │   ├── room_category.go              # Room category entity
-│   │   │   ├── room_rent.go                  # Room rent entity
 │   │   │   └── user.go                       # User entity
 │   │   │
 │   │   ├── repository/                       # Repository interfaces
@@ -121,7 +120,6 @@ Domain layer là layer trung tâm và không phụ thuộc vào bất kỳ layer
   - `room.go`: Đối tượng phòng ở
   - `room_category.go`: Loại phòng và giá cả
   - `contract.go`: Hợp đồng thuê phòng
-  - `room_rent.go`: Thông tin về việc thuê phòng
 
 - **Repository Interfaces (internal/domain/repository/)**: Định nghĩa các interface để thao tác với dữ liệu:
 

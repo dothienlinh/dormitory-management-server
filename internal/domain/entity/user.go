@@ -45,16 +45,30 @@ type User struct {
 	Gender      UserGender  `json:"gender"`
 	Status      UserStatus  `json:"status"`
 	Phone       string      `json:"phone"`
+	IsVerify    bool        `json:"is_verify"`
 	Birthday    *time.Time  `json:"birthday"`
 	Avatar      *string     `json:"avatar"`
-	RoomRentID  *uint       `json:"-"`
-	RoomRent    *RoomRent   `json:"room_rent"`
+	RoomID      *uint       `json:"-"`
+	Room        *Room       `json:"room"`
 	Contracts   *[]Contract `json:"contracts"`
 	Payments    *[]Payment  `json:"payments"`
 }
 
 func (User) TableName() string {
 	return "users"
+}
+
+type UpdateUser struct {
+	FullName    *string     `json:"full_name"`
+	StudentCode *string     `json:"student_code"`
+	Email       *string     `json:"email"`
+	Password    *string     `json:"-"`
+	Role        *UserRole   `json:"role"`
+	Gender      *UserGender `json:"gender"`
+	Status      *UserStatus `json:"status"`
+	Phone       *string     `json:"phone"`
+	Birthday    *time.Time  `json:"birthday"`
+	Avatar      *string     `json:"avatar"`
 }
 
 // UserSimple is a simplified version of User for limited data exposure
@@ -165,8 +179,18 @@ type UserDTO struct {
 	Phone       string     `json:"phone"`
 	Birthday    *time.Time `json:"birthday"`
 	Avatar      *string    `json:"avatar"`
-	RoomRent    *RoomRent  `json:"room_rent,omitempty"`
+	Room        *Room      `json:"room,omitempty"`
 	Contract    *Contract  `json:"contract,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
+}
+
+type AddUserToRoom struct {
+	UserID uint `json:"user_id" binding:"required,numeric"`
+	RoomID uint `json:"room_id" binding:"required,numeric"`
+}
+
+type UserLeavesRoom struct {
+	UserID uint `json:"user_id" binding:"required,numeric"`
+	RoomID uint `json:"room_id" binding:"required,numeric"`
 }

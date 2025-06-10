@@ -16,7 +16,6 @@ type Config struct {
 	JWT      JWTConfig
 	LogLevel string
 	Email    EmailConfig
-	SMS      SMSConfig
 }
 
 // ServerConfig holds all the server-related configuration
@@ -57,14 +56,6 @@ type EmailConfig struct {
 	FromEmailPassword string
 	FromEmailSMTP     string
 	SMTP_ADDR         string
-}
-
-type SMSConfig struct {
-	StringeeUrl          string
-	StringeePhoneNumber  string
-	StringeeISS          string
-	StringeeTokenExpires int
-	StringeeTokenSecret  string
 }
 
 // LoadConfig loads the configuration from environment variables
@@ -108,13 +99,6 @@ func LoadConfig() *Config {
 	fromEmailSMTP := getEnv("FROM_EMAIL_SMTP", "smtp.gmail.com")
 	smtp_ADDR := getEnv("SMTP_ADDR", "smtp.gmail.com:587")
 
-	// SMS config
-	stringeeUrl := getEnv("STRINGEE_URL", "https://api.stringee.com/v1/call2/callout")
-	stringeePhoneNumber := getEnv("STRINGEE_PHONE_NUMBER", "+1234567890")
-	stringeeISS := getEnv("STRINGEE_ISS", "+1234567890")
-	stringeeTokenExpires := getEnvAsInt("STRINGEE_TOKEN_EXPIRES_IN", 3600)
-	stringeeTokenSecret := getEnv("STRINGEE_TOKEN_SECRET", "your-secret-key")
-
 	return &Config{
 		Server: ServerConfig{
 			Port:      serverPort,
@@ -147,13 +131,6 @@ func LoadConfig() *Config {
 			FromEmailPassword: fromEmailPassword,
 			FromEmailSMTP:     fromEmailSMTP,
 			SMTP_ADDR:         smtp_ADDR,
-		},
-		SMS: SMSConfig{
-			StringeeUrl:          stringeeUrl,
-			StringeePhoneNumber:  stringeePhoneNumber,
-			StringeeISS:          stringeeISS,
-			StringeeTokenExpires: stringeeTokenExpires,
-			StringeeTokenSecret:  stringeeTokenSecret,
 		},
 	}
 }

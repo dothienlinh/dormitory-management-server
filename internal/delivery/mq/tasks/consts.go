@@ -3,8 +3,8 @@ package tasks
 type TaskType string
 
 const (
-	TypeSendCodeEmail TaskType = "email:send_code_email"
-	TypeCallCodeSMS   TaskType = "stringee:call_code_sms"
+	TypeSendCodeEmail          TaskType = "email:send_code_email"
+	TypeSendEmailVerifyAccount TaskType = "email:send_email_verify_account"
 )
 
 const (

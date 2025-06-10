@@ -78,11 +78,19 @@ func (r *authRepository) InvalidateToken(ctx context.Context, tokenType entity.T
 }
 
 // Register registers a new user
-func (r *authRepository) Register(ctx context.Context, user *entity.User) error {
-	if err := r.db.WithContext(ctx).Table(user.TableName()).Create(user).Error; err != nil {
-		return fmt.Errorf("failed to register user: %w", err)
-	}
-	return nil
+func (r *authRepository) Register(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).Table(user.TableName()).Create(user).Error; err != nil {
+			return fmt.Errorf("failed to register user: %w", err)
+		}
+
+		return nil
+	})
+
+	// if err := r.db.WithContext(ctx).Table(user.TableName()).Create(user).Error; err != nil {
+	// 	return fmt.Errorf("failed to register user: %w", err)
+	// }
+	// return nil
 }
 
 // Login authenticates a user and returns user data

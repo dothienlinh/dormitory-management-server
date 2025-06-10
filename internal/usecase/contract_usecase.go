@@ -27,32 +27,32 @@ func NewContractUseCase(repos repository.Repositories, logger logger.Logger) use
 }
 
 // CreateContract creates a new contract
-func (uc *contractUseCase) CreateContract(ctx context.Context, contract *entity.Contract) response.StatusResponse {
+func (uc *contractUseCase) CreateContract(ctx context.Context, createContract *entity.CreateContract) response.StatusResponse {
 	// Validate user
-	_, err := uc.repos.User().GetByID(ctx, contract.UserID)
+	_, err := uc.repos.User().GetByID(ctx, createContract.UserID)
 	if err != nil {
 		uc.logger.Error("Failed to validate user", zap.Error(err))
 		return response.BadRequest("Invalid user")
 	}
 
 	// Validate room
-	room, err := uc.repos.Room().GetByID(ctx, contract.RoomID)
+	room, err := uc.repos.Room().GetByID(ctx, createContract.RoomID)
 	if err != nil {
 		uc.logger.Error("Failed to validate room", zap.Error(err))
 		return response.BadRequest("Invalid room")
 	}
 
 	// Set contract price from room category if not specified
-	if contract.Price == 0 {
-		contract.Price = room.RoomCategory.Price
+	if createContract.Price == 0 {
+		createContract.Price = room.RoomCategory.Price
 	}
 
-	if err := uc.repos.Contract().Create(ctx, contract); err != nil {
+	if err := uc.repos.Contract().Create(ctx, createContract); err != nil {
 		uc.logger.Error("Failed to create contract", zap.Error(err))
 		return response.InternalServerError("Failed to create contract")
 	}
 
-	return response.Created(contract)
+	return response.Created(createContract)
 }
 
 // GetContractByID retrieves a contract by ID

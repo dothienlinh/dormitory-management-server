@@ -130,6 +130,9 @@ func main() {
 	mux.HandleFunc(string(tasks.TypeSendCodeEmail), func(ctx context.Context, t *asynq.Task) error {
 		return consumer.EmailTask().SendOTP(ctx, t)
 	})
+	mux.HandleFunc(string(tasks.TypeSendEmailVerifyAccount), func(ctx context.Context, t *asynq.Task) error {
+		return consumer.EmailTask().SendVerifyAccount(ctx, t)
+	})
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

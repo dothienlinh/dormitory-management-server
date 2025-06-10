@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -243,14 +244,19 @@ func (m *Middleware) ErrorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 
-		// Only handle errors if there are errors to handle
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last().Err
 			m.logger.Error("API error", zap.Error(err))
 
 			var resp response.StatusResponse
 
-			// Determine the type of error and set the appropriate status code and message
+			if validationErrors, ok := err.(validator.ValidationErrors); ok {
+				resp = m.formatValidationError(validationErrors)
+				c.JSON(resp.Status, resp.Response)
+				c.Abort()
+				return
+			}
+
 			switch {
 			case errors.Is(err, gorm.ErrRecordNotFound):
 				resp = response.NotFound("Resource not found")
@@ -259,6 +265,8 @@ func (m *Middleware) ErrorMiddleware() gin.HandlerFunc {
 			}
 
 			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
 		}
 	}
 }
@@ -268,4 +276,40 @@ func (m *Middleware) CustomRecovery() gin.RecoveryFunc {
 		resp := response.InternalServerError("Internal server error")
 		c.JSON(resp.Status, resp.Response)
 	}
+}
+
+func (m *Middleware) formatValidationError(validationErrors validator.ValidationErrors) response.StatusResponse {
+	errors := make(map[string]string)
+
+	for _, err := range validationErrors {
+		field := err.Field()
+		tag := err.Tag()
+
+		var message string
+		switch tag {
+		case "required":
+			message = field + " is required"
+		case "email":
+			message = field + " must be a valid email"
+		case "min":
+			message = field + " must be at least " + err.Param() + " characters"
+		case "max":
+			message = field + " must be at most " + err.Param() + " characters"
+		case "len":
+			message = field + " must be exactly " + err.Param() + " characters"
+		case "numeric":
+			message = field + " must be a number"
+		case "alpha":
+			message = field + " must contain only letters"
+		case "alphanum":
+			message = field + " must contain only letters and numbers"
+		default:
+			message = field + " is invalid"
+		}
+
+		fieldName := helper.ToSnakeCase(field)
+		errors[fieldName] = message
+	}
+
+	return response.Validation("Invalid data", errors)
 }

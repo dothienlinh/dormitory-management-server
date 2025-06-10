@@ -33,8 +33,7 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 		var user entity.UserRegister
 		if err := c.ShouldBindJSON(&user); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
@@ -52,8 +51,7 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 		var loginData entity.UserLogin
 		if err := c.ShouldBindJSON(&loginData); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
@@ -71,8 +69,7 @@ func (h *AuthHandler) RefreshToken() gin.HandlerFunc {
 		var refreshData entity.UserRefreshToken
 		if err := c.ShouldBindJSON(&refreshData); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 

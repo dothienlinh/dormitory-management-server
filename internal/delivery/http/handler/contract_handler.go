@@ -31,15 +31,14 @@ func (h *ContractHandler) CreateContract() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("CreateContract")
 
-		var contract entity.Contract
-		if err := c.ShouldBindJSON(&contract); err != nil {
+		var createContract entity.CreateContract
+		if err := c.ShouldBindJSON(&createContract); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
-		resp = h.useCases.Contract().CreateContract(c, &contract)
+		resp = h.useCases.Contract().CreateContract(c, &createContract)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -118,8 +117,7 @@ func (h *ContractHandler) UpdateContract() gin.HandlerFunc {
 		var updateData entity.UpdateContract
 		if err := c.ShouldBindJSON(&updateData); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
