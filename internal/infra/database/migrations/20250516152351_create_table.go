@@ -37,7 +37,7 @@ func upCreateTable(ctx context.Context, tx *sql.Tx) error {
 		phone VARCHAR(255),
 		birthday TIMESTAMPTZ,
 		avatar TEXT,
-		room_rent_id INTEGER,
+		room_id INTEGER,
 		contract_id INTEGER,
 		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -82,15 +82,6 @@ func upCreateTable(ctx context.Context, tx *sql.Tx) error {
 		deleted_at TIMESTAMPTZ
 	);
 	CREATE INDEX idx_contracts_code ON contracts (code);
-
-	CREATE TABLE room_rents (
-		id SERIAL PRIMARY KEY,
-		room_id INTEGER NOT NULL,
-		user_id INTEGER NOT NULL,
-		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		deleted_at TIMESTAMPTZ
-	);
 	`
 
 	if _, err := tx.ExecContext(ctx, createTableAndIndexQuery); err != nil {
@@ -100,7 +91,7 @@ func upCreateTable(ctx context.Context, tx *sql.Tx) error {
 	addForeignKeyConstraintsQuery := `
 	ALTER TABLE users 
 		ADD CONSTRAINT fk_contracts_user FOREIGN KEY (contract_id) REFERENCES contracts(id),
-		ADD CONSTRAINT fk_room_rents_user FOREIGN KEY (room_rent_id) REFERENCES room_rents(id);
+		ADD CONSTRAINT fk_rooms_user FOREIGN KEY (room_id) REFERENCES rooms(id);
 
 	ALTER TABLE rooms
 		ADD CONSTRAINT fk_room_categories_rooms FOREIGN KEY (room_category_id) REFERENCES room_categories(id);
@@ -108,10 +99,6 @@ func upCreateTable(ctx context.Context, tx *sql.Tx) error {
 	ALTER TABLE contracts
 		ADD CONSTRAINT fk_users_contract FOREIGN KEY (user_id) REFERENCES users(id),
 		ADD CONSTRAINT fk_rooms_contract FOREIGN KEY (room_id) REFERENCES rooms(id);
-
-	ALTER TABLE room_rents
-		ADD CONSTRAINT fk_users_room_rents FOREIGN KEY (user_id) REFERENCES users(id),
-		ADD CONSTRAINT fk_rooms_room_rents FOREIGN KEY (room_id) REFERENCES rooms(id);
 	`
 
 	if _, err := tx.ExecContext(ctx, addForeignKeyConstraintsQuery); err != nil {
@@ -125,7 +112,7 @@ func downCreateTable(ctx context.Context, tx *sql.Tx) error {
 	dropForeignKeyConstraintsQuery := `
 	ALTER TABLE users 
 		DROP CONSTRAINT IF EXISTS fk_contracts_user,
-		DROP CONSTRAINT IF EXISTS fk_room_rents_user;
+		DROP CONSTRAINT IF EXISTS fk_rooms_user;
 
 	ALTER TABLE rooms
 		DROP CONSTRAINT IF EXISTS fk_room_categories_rooms;
@@ -133,10 +120,6 @@ func downCreateTable(ctx context.Context, tx *sql.Tx) error {
 	ALTER TABLE contracts
 		DROP CONSTRAINT IF EXISTS fk_users_contract,
 		DROP CONSTRAINT IF EXISTS fk_rooms_contract;
-
-	ALTER TABLE room_rents
-		DROP CONSTRAINT IF EXISTS fk_users_room_rents,
-		DROP CONSTRAINT IF EXISTS fk_rooms_room_rents;
 	`
 
 	if _, err := tx.ExecContext(ctx, dropForeignKeyConstraintsQuery); err != nil {
@@ -144,7 +127,6 @@ func downCreateTable(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	dropTables := `
-	DROP TABLE IF EXISTS room_rents;
 	DROP TABLE IF EXISTS contracts;
 	DROP TABLE IF EXISTS rooms;
 	DROP TABLE IF EXISTS room_categories;

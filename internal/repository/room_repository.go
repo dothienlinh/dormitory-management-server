@@ -33,7 +33,7 @@ func (r *roomRepository) Create(ctx context.Context, room *entity.Room) error {
 // GetByID retrieves a room by ID
 func (r *roomRepository) GetByID(ctx context.Context, id uint) (*entity.Room, error) {
 	var room entity.Room
-	if err := r.db.WithContext(ctx).Table(room.TableName()).Preload("RoomCategory").Preload("RoomRents").First(&room, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(room.TableName()).Preload("RoomCategory").Preload("Users").First(&room, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("room with ID %d not found", id)
 		}

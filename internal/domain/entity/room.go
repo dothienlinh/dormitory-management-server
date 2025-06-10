@@ -12,7 +12,7 @@ type Room struct {
 	Status         RoomStatus   `json:"status"`
 	RoomCategoryID uint         `json:"room_category_id"`
 	RoomCategory   RoomCategory `json:"room_category"`
-	RoomRents      []RoomRent   `json:"room_rents,omitempty"`
+	Users          []User       `json:"users,omitempty"`
 }
 
 func (Room) TableName() string {
@@ -114,7 +114,7 @@ type RoomDTO struct {
 	Status         RoomStatus   `json:"status"`
 	RoomCategoryID uint         `json:"room_category_id"`
 	RoomCategory   RoomCategory `json:"room_category,omitempty"`
-	RoomRents      []RoomRent   `json:"room_rents,omitempty"`
+	Users          []User       `json:"users,omitempty"`
 }
 
 // RoomCategoryDTO is a data transfer object for RoomCategory entity

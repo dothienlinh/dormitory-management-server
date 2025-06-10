@@ -15,6 +15,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -30,18 +31,20 @@ type Claims struct {
 
 // authUseCase implements the usecase.AuthUseCase interface
 type authUseCase struct {
-	repos  repository.Repositories
-	logger logger.Logger
-	config *config.Config
+	repos       repository.Repositories
+	logger      logger.Logger
+	config      *config.Config
+	asynqClient *asynq.Client
 }
 
 // NewAuthUseCase creates a new auth use case
-func NewAuthUseCase(repos repository.Repositories, logger logger.Logger) usecase.AuthUseCase {
+func NewAuthUseCase(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.AuthUseCase {
 	cfg := config.LoadConfig()
 	return &authUseCase{
-		repos:  repos,
-		logger: logger,
-		config: cfg,
+		repos:       repos,
+		logger:      logger,
+		config:      cfg,
+		asynqClient: asynqClient,
 	}
 }
 
@@ -113,6 +116,11 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 	if err != nil {
 		uc.logger.Error("Login failed", zap.Error(err))
 		return response.Unauthorized("Invalid email or password")
+	}
+
+	if !user.IsVerify {
+		uc.logger.Error("Unverified user")
+		return response.Forbidden("Unverified user")
 	}
 
 	// Generate tokens

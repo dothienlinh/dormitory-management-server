@@ -108,7 +108,7 @@ func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint) response.StatusR
 		return response.NotFound(fmt.Sprintf("Room with ID %d not found", id))
 	}
 
-	if len(room.RoomRents) > 0 {
+	if len(room.Users) > 0 {
 		return response.BadRequest("Cannot delete room with active students")
 	}
 

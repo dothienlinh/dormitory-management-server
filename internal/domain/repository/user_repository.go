@@ -26,8 +26,8 @@ type UserRepository interface {
 	Delete(ctx context.Context, id uint) error
 
 	// AddUserToRoom adds a user to a room
-	AddUserToRoom(ctx context.Context, payload entity.CreateRoomRent) error
+	AddUserToRoom(ctx context.Context, payload entity.AddUserToRoom) error
 
-	// RemoveUserFromRoom removes a user from a room
-	RemoveUserFromRoom(ctx context.Context, payload entity.RemoveUserFromRoom) error
+	// UserLeavesRoom removes a user from a room
+	UserLeavesRoom(ctx context.Context, payload entity.UserLeavesRoom) error
 }

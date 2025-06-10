@@ -100,7 +100,7 @@ func (uc *userUseCase) DeleteUser(ctx context.Context, id uint) response.StatusR
 }
 
 // AddUserToRoom adds a user to a room
-func (uc *userUseCase) AddUserToRoom(ctx context.Context, payload entity.CreateRoomRent) response.StatusResponse {
+func (uc *userUseCase) AddUserToRoom(ctx context.Context, payload entity.AddUserToRoom) response.StatusResponse {
 	if err := uc.repos.User().AddUserToRoom(ctx, payload); err != nil {
 		uc.logger.Error("Failed to add user to room", zap.Error(err))
 		return response.BadRequest(err.Error())
@@ -109,9 +109,9 @@ func (uc *userUseCase) AddUserToRoom(ctx context.Context, payload entity.CreateR
 	return response.Success("User added to room successfully", 0)
 }
 
-// RemoveUserFromRoom removes a user from a room
-func (uc *userUseCase) RemoveUserFromRoom(ctx context.Context, payload entity.RemoveUserFromRoom) response.StatusResponse {
-	if err := uc.repos.User().RemoveUserFromRoom(ctx, payload); err != nil {
+// UserLeavesRoom removes a user from a room
+func (uc *userUseCase) UserLeavesRoom(ctx context.Context, payload entity.UserLeavesRoom) response.StatusResponse {
+	if err := uc.repos.User().UserLeavesRoom(ctx, payload); err != nil {
 		uc.logger.Error("Failed to remove user from room", zap.Error(err))
 		return response.BadRequest(err.Error())
 	}

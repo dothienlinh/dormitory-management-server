@@ -17,6 +17,6 @@ func SetupUserRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *mi
 		users.PUT("/:id", handlers.User.UpdateUser())
 		users.DELETE("/:id", mw.AdminMiddleware(), handlers.User.DeleteUser())
 		users.POST("/room", handlers.User.AddUserToRoom())
-		users.POST("/remove-room", handlers.User.RemoveUserFromRoom())
+		users.POST("/remove-room", handlers.User.UserLeavesRoom())
 	}
 }

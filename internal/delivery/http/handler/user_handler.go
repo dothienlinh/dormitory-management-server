@@ -116,7 +116,7 @@ func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("AddUserToRoom")
 
-		var payload entity.CreateRoomRent
+		var payload entity.AddUserToRoom
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
 			resp = response.BadRequest(err.Error())
@@ -129,13 +129,13 @@ func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 	}
 }
 
-// RemoveUserFromRoom handles the request to remove a user from a room
-func (h *UserHandler) RemoveUserFromRoom() gin.HandlerFunc {
+// UserLeavesRoom handles the request to remove a user from a room
+func (h *UserHandler) UserLeavesRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("RemoveUserFromRoom")
+		h.logger.Info("UserLeavesRoom")
 
-		var payload entity.RemoveUserFromRoom
+		var payload entity.UserLeavesRoom
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
@@ -144,7 +144,7 @@ func (h *UserHandler) RemoveUserFromRoom() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.User().RemoveUserFromRoom(c, payload)
+		resp = h.useCases.User().UserLeavesRoom(c, payload)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
