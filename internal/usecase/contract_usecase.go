@@ -29,8 +29,10 @@ func NewContractUseCase(repos repository.Repositories, logger logger.Logger) use
 // CreateContract creates a new contract
 func (uc *contractUseCase) CreateContract(ctx context.Context, createContract *entity.CreateContract) response.StatusResponse {
 	// Validate user
-	_, err := uc.repos.User().GetByID(ctx, createContract.UserID)
-	if err != nil {
+	user := &entity.User{
+		Base: entity.Base{ID: createContract.UserID},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to validate user", zap.Error(err))
 		return response.BadRequest("Invalid user")
 	}

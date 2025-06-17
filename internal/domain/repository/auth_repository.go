@@ -17,7 +17,7 @@ type AuthRepository interface {
 	SetUserCache(ctx context.Context, user *entity.User, expiresIn int) error
 
 	// GetUserCache retrieves user data from the cache
-	GetUserCache(ctx context.Context, userID uint) (*entity.User, error)
+	GetUserCache(ctx context.Context, user *entity.User) error
 
 	// DeleteUserCache deletes user data from the cache
 	DeleteUserCache(ctx context.Context, userID uint) error
@@ -29,5 +29,7 @@ type AuthRepository interface {
 	Register(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error
 
 	// Login authenticates a user and returns user data
-	Login(ctx context.Context, email, password string) (*entity.User, error)
+	Login(ctx context.Context, user *entity.User) error
+
+	VerifyAccount(ctx context.Context, otpCode *entity.OtpCode, user *entity.User) error
 }

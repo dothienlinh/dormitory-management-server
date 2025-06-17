@@ -16,6 +16,7 @@ type Config struct {
 	JWT      JWTConfig
 	LogLevel string
 	Email    EmailConfig
+	Client   ClientConfig
 }
 
 // ServerConfig holds all the server-related configuration
@@ -23,6 +24,11 @@ type ServerConfig struct {
 	Port      string
 	Mode      string
 	SecretKey string
+}
+
+// Client holds all the client-related configuration
+type ClientConfig struct {
+	ClientDomain string
 }
 
 // DatabaseConfig holds all the database-related configuration
@@ -70,6 +76,9 @@ func LoadConfig() *Config {
 	serverMode := getEnv("SERVER_MODE", "debug")
 	serverSecretKey := getEnv("SERVER_SECRET_KEY", "your-secret-key")
 
+	// Client config
+	clientDomain := getEnv("CLIENT_DOMAIN", "http://localhost:3000")
+
 	// Database config
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "5432")
@@ -104,6 +113,9 @@ func LoadConfig() *Config {
 			Port:      serverPort,
 			Mode:      serverMode,
 			SecretKey: serverSecretKey,
+		},
+		Client: ClientConfig{
+			ClientDomain: clientDomain,
 		},
 		Database: DatabaseConfig{
 			Host:     dbHost,

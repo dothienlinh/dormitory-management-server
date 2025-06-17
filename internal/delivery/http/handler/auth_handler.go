@@ -113,3 +113,37 @@ func (h *AuthHandler) Me() gin.HandlerFunc {
 		c.JSON(resp.Status, resp.Response)
 	}
 }
+
+func (h *AuthHandler) VerifyAccount() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("VerifyAccount")
+
+		var payload entity.VerifyAccount
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.Auth().VerifyAccount(ctx, payload)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *AuthHandler) ResendVerifyAccount() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("ResendVerifyAccount")
+
+		var payload entity.SendCodeEmail
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.Auth().ResendVerifyAccount(ctx, payload)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}

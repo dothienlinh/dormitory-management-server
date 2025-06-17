@@ -17,5 +17,7 @@ func SetupAuthRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *mi
 		auth.POST("/refresh-token", handlers.Auth.RefreshToken())
 		auth.POST("/logout", mw.AuthMiddleware(), handlers.Auth.Logout())
 		auth.GET("/me", mw.AuthMiddleware(), handlers.Auth.Me())
+		auth.POST("/verify-account", handlers.Auth.VerifyAccount())
+		auth.POST("/resend-verify-account", handlers.Auth.ResendVerifyAccount())
 	}
 }

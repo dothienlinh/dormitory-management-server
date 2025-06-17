@@ -28,8 +28,10 @@ func NewUserUseCase(repos repository.Repositories, logger logger.Logger) usecase
 
 // GetUserByID retrieves a user by ID
 func (uc *userUseCase) GetUserByID(ctx context.Context, id uint) response.StatusResponse {
-	user, err := uc.repos.User().GetByID(ctx, id)
-	if err != nil {
+	user := &entity.User{
+		Base: entity.Base{ID: id},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user by ID", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
 	}
@@ -50,8 +52,10 @@ func (uc *userUseCase) GetListUsers(ctx context.Context, filter *entity.UserFilt
 
 // UpdateUser updates a user
 func (uc *userUseCase) UpdateUser(ctx context.Context, id uint, userData *entity.User) response.StatusResponse {
-	user, err := uc.repos.User().GetByID(ctx, id)
-	if err != nil {
+	user := &entity.User{
+		Base: entity.Base{ID: id},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user for update", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
 	}
@@ -86,7 +90,10 @@ func (uc *userUseCase) UpdateUser(ctx context.Context, id uint, userData *entity
 
 // DeleteUser deletes a user
 func (uc *userUseCase) DeleteUser(ctx context.Context, id uint) response.StatusResponse {
-	if _, err := uc.repos.User().GetByID(ctx, id); err != nil {
+	user := &entity.User{
+		Base: entity.Base{ID: id},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user for deletion", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
 	}
