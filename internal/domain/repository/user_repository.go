@@ -11,10 +11,10 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
 
 	// GetByID retrieves a user by ID
-	GetByID(ctx context.Context, id uint) (*entity.User, error)
+	GetByID(ctx context.Context, user *entity.User) error
 
 	// GetByEmail retrieves a user by email
-	GetByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetByEmail(ctx context.Context, user *entity.User) error
 
 	// List retrieves users based on filter
 	List(ctx context.Context, filter *entity.UserFilter) ([]entity.User, int64, error)

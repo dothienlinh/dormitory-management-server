@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -51,18 +52,17 @@ func (r *authRepository) SetUserCache(ctx context.Context, user *entity.User, ex
 }
 
 // GetUserCache retrieves user data from Redis
-func (r *authRepository) GetUserCache(ctx context.Context, userID uint) (*entity.User, error) {
-	key := fmt.Sprintf("user:%d", userID)
+func (r *authRepository) GetUserCache(ctx context.Context, user *entity.User) error {
+	key := fmt.Sprintf("user:%d", user.ID)
 	userJson, err := r.redis.Get(ctx, key)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	user := entity.User{}
-	if err := json.Unmarshal([]byte(userJson), &user); err != nil {
-		return nil, err
+	if err := json.Unmarshal([]byte(userJson), user); err != nil {
+		return err
 	}
-	return &user, nil
+	return nil
 }
 
 // DeleteUserCache deletes user data from Redis
@@ -84,29 +84,48 @@ func (r *authRepository) Register(ctx context.Context, user *entity.User, otpCod
 			return fmt.Errorf("failed to register user: %w", err)
 		}
 
+		if err := tx.WithContext(ctx).Table(otpCode.TableName()).Create(otpCode).Error; err != nil {
+			return err
+		}
+
 		return nil
 	})
 
-	// if err := r.db.WithContext(ctx).Table(user.TableName()).Create(user).Error; err != nil {
-	// 	return fmt.Errorf("failed to register user: %w", err)
-	// }
-	// return nil
 }
 
 // Login authenticates a user and returns user data
-func (r *authRepository) Login(ctx context.Context, email, password string) (*entity.User, error) {
-	var user entity.User
-	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("email = ?", email).First(&user).Error; err != nil {
+func (r *authRepository) Login(ctx context.Context, user *entity.User) error {
+	password := user.Password
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("email = ?", user.Email).First(user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("invalid email or password")
+			return errors.New("invalid email or password")
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+
+	if !user.IsVerify {
+		return errors.New("unverified user")
 	}
 
 	// Verify password
 	if !helper.CheckPassword(password, user.Password) {
-		return nil, errors.New("invalid email or password")
+		return errors.New("invalid email or password")
 	}
 
-	return &user, nil
+	return nil
+}
+
+func (r *authRepository) VerifyAccount(ctx context.Context, otpCode *entity.OtpCode, user *entity.User) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		useOtpCode := entity.UseOtpCode{IsUsed: true, VerifiedAt: time.Now().Format(time.RFC3339)}
+		if err := tx.WithContext(ctx).Table(otpCode.TableName()).Where(otpCode).Updates(useOtpCode).Error; err != nil {
+			return err
+		}
+
+		if err := tx.WithContext(ctx).Table(user.TableName()).Where(user).Updates(entity.User{IsVerify: true}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

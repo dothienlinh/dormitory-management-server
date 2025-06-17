@@ -169,10 +169,13 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Get user
-		user, err := m.repos.Auth().GetUserCache(c, claims.UserID)
-		if errors.Is(err, redis.Nil) {
-			user, err := m.repos.User().GetByID(c, claims.UserID)
-			if err != nil {
+		user := &entity.User{
+			Base: entity.Base{
+				ID: claims.UserID,
+			},
+		}
+		if err := m.repos.Auth().GetUserCache(c, user); errors.Is(err, redis.Nil) {
+			if err := m.repos.User().GetByID(c, user); err != nil {
 				resp := response.Unauthorized(err.Error())
 				c.JSON(resp.Status, resp.Response)
 				c.Abort()
@@ -193,10 +196,15 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			m.setUserInContext(c, user)
 			c.Next()
 			return
+		} else if err != nil {
+			resp := response.Unauthorized(err.Error())
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
 		}
 
-		if err != nil {
-			resp := response.Unauthorized(err.Error())
+		if !user.IsVerify {
+			resp := response.Unauthorized("Unverified User")
 			c.JSON(resp.Status, resp.Response)
 			c.Abort()
 			return

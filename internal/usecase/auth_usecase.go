@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -54,8 +55,7 @@ func NewAuthUseCase(repos repository.Repositories, logger logger.Logger, asynqCl
 // Register registers a new user
 func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegister) response.StatusResponse {
 	// Check if email already exists
-	_, err := uc.repos.User().GetByEmail(ctx, userData.Email)
-	if err == nil {
+	if err := uc.repos.User().GetByEmail(ctx, &entity.User{Email: userData.Email}); err == nil {
 		return response.BadRequest("Email already exists")
 	}
 
@@ -75,7 +75,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		UserID:         &user.ID,
 		IdentifierType: entity.IdentifierTypeEmail.String(),
 		Identifier:     user.Email,
-		OtpType:        entity.OtpTypeVerifyEmail.String(),
+		OtpType:        entity.OtpTypeVerifyAccount.String(),
 		ExpiresAt:      common.GetExpireTime(15),
 	}
 
@@ -84,10 +84,16 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		return response.InternalServerError("Failed to register user")
 	}
 
+	otpCodeEncrypt, err := helper.Encrypt(otpCode.OtpCode, uc.config.Server.SecretKey)
+	if err != nil {
+		uc.logger.Error("Failed encrypt otp code", zap.Error(err))
+		return response.InternalServerError("Failed encrypt otp code")
+	}
+
 	jsonPayload, err := json.Marshal(&entity.SendMailVerifyAccount{
 		UserID: user.ID,
 		Email:  user.Email,
-		Token:  uuid.New().String(),
+		Token:  otpCodeEncrypt,
 	})
 	if err != nil {
 		uc.logger.Error("Failed to marshal payload", zap.Error(err))
@@ -102,11 +108,12 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 // Me returns the current user
 func (uc *authUseCase) Me(ctx context.Context, userID uint) response.StatusResponse {
 	// Get user from cache
-	user, err := uc.repos.Auth().GetUserCache(ctx, userID)
-	if errors.Is(err, redis.Nil) {
+	user := &entity.User{
+		Base: entity.Base{ID: userID},
+	}
+	if err := uc.repos.Auth().GetUserCache(ctx, user); errors.Is(err, redis.Nil) {
 		uc.logger.Info("User not found in cache, fetching from database")
-		user, err := uc.repos.User().GetByID(ctx, userID)
-		if err != nil {
+		if err := uc.repos.User().GetByID(ctx, user); err != nil {
 			uc.logger.Error("User not found", zap.Error(err))
 			return response.Unauthorized("User not found")
 		}
@@ -118,28 +125,23 @@ func (uc *authUseCase) Me(ctx context.Context, userID uint) response.StatusRespo
 		}
 
 		return response.Success(user, 1)
-	}
-
-	if err != nil {
+	} else if err != nil {
 		uc.logger.Error("User not found", zap.Error(err))
 		return response.Unauthorized("User not found")
 	}
-
-	// user, err := uc.repos.User().GetByID(ctx, userID)
-	// if err != nil {
-	// 	uc.logger.Error("User not found", zap.Error(err))
-	// 	return response.Unauthorized("User not found")
-	// }
 
 	return response.Success(user, 1)
 }
 
 // Login authenticates a user and returns tokens
 func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) response.StatusResponse {
-	user, err := uc.repos.Auth().Login(ctx, loginData.Email, loginData.Password)
-	if err != nil {
+	user := &entity.User{
+		Email:    loginData.Email,
+		Password: loginData.Password,
+	}
+	if err := uc.repos.Auth().Login(ctx, user); err != nil {
 		uc.logger.Error("Login failed", zap.Error(err))
-		return response.Unauthorized("Invalid email or password")
+		return response.Unauthorized(err.Error())
 	}
 
 	if !user.IsVerify {
@@ -217,8 +219,10 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 	}
 
 	// Get user
-	user, err := uc.repos.User().GetByID(ctx, claims.UserID)
-	if err != nil {
+	user := &entity.User{
+		Base: entity.Base{ID: claims.UserID},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("User not found", zap.Error(err))
 		return response.Unauthorized("User not found")
 	}
@@ -264,8 +268,10 @@ func (uc *authUseCase) Logout(ctx context.Context, userID uint) response.StatusR
 // GenerateTokens generates access and refresh tokens
 func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint) (string, string, error) {
 	// Get user
-	user, err := uc.repos.User().GetByID(ctx, userID)
-	if err != nil {
+	user := &entity.User{
+		Base: entity.Base{ID: userID},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		return "", "", errors.New("user not found")
 	}
 
@@ -280,6 +286,120 @@ func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint) (string,
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func (uc *authUseCase) VerifyAccount(ctx context.Context, payload entity.VerifyAccount) response.StatusResponse {
+
+	unescapeToken, err := url.QueryUnescape(payload.Token)
+	if err != nil {
+		uc.logger.Error("Failed to unescape token", zap.Error(err))
+		return response.InternalServerError(err.Error())
+	}
+
+	tokenDecrypt, err := helper.Decrypt(unescapeToken, uc.config.Server.SecretKey)
+	if err != nil {
+		uc.logger.Error("Failed to decrypt token", zap.Error(err))
+		return response.Unauthorized(err.Error())
+	}
+
+	otpCode := &entity.OtpCode{
+		OtpCode:    tokenDecrypt,
+		Identifier: payload.Email,
+	}
+	if err := uc.repos.OtpCode().FindCode(ctx, otpCode); err != nil {
+		uc.logger.Error("Failed to find otp code", zap.Error(err))
+		return response.Unauthorized(err.Error())
+	}
+
+	if otpCode.ID == 0 {
+		return response.Unauthorized("Otp code not found")
+	}
+
+	if otpCode.IsUsed || otpCode.VerifiedAt != nil {
+		return response.Unauthorized("Otp code used")
+	}
+
+	if otpCode.Identifier != payload.Email ||
+		otpCode.IdentifierType != entity.IdentifierTypeEmail.String() ||
+		otpCode.OtpType != entity.OtpTypeVerifyAccount.String() {
+		return response.Unauthorized("Invalid otp code")
+	}
+
+	expiresAt, err := common.ParsedTime(otpCode.ExpiresAt)
+	if err != nil {
+		uc.logger.Error("Failed to parse expiresAt", zap.Error(err))
+		return response.InternalServerError("Failed to verify OTP code")
+	}
+	if time.Now().After(expiresAt) {
+		uc.logger.Error("OTP code expired")
+		return response.BadRequest("OTP code expired")
+	}
+
+	user := &entity.User{
+		Email: payload.Email,
+	}
+	if err := uc.repos.User().GetByEmail(ctx, user); err != nil {
+		uc.logger.Error("Failed find user by email", zap.Error(err))
+		return response.BadRequest(err.Error())
+	}
+
+	if err := uc.repos.Auth().VerifyAccount(ctx, otpCode, user); err != nil {
+		uc.logger.Error("Failed to use OTP code", zap.Error(err))
+		return response.InternalServerError("Failed to verify OTP code")
+	}
+
+	return response.Success("Verify Account successfully", 0)
+}
+
+func (uc *authUseCase) ResendVerifyAccount(ctx context.Context, payload entity.SendCodeEmail) response.StatusResponse {
+	user := &entity.User{
+		Email: payload.Email,
+	}
+
+	if err := uc.repos.User().GetByEmail(ctx, user); err != nil {
+		uc.logger.Error("Failed find user by email", zap.Error(err))
+		return response.BadRequest(err.Error())
+	}
+
+	if user.IsVerify {
+		uc.logger.Error("User verified")
+		return response.BadRequest("User verified")
+	}
+
+	otpCode := &entity.OtpCode{
+		IsUsed:         false,
+		OtpCode:        common.GenerateCode(6),
+		UserID:         &user.ID,
+		IdentifierType: entity.IdentifierTypeEmail.String(),
+		Identifier:     payload.Email,
+		OtpType:        entity.OtpTypeVerifyAccount.String(),
+		ExpiresAt:      common.GetExpireTime(15),
+	}
+
+	if err := uc.repos.OtpCode().CreateOtpCode(ctx, otpCode); err != nil {
+		uc.logger.Error("Failed create otp code", zap.Error(err))
+		return response.InternalServerError("Failed create otp code")
+	}
+
+	otpCodeEncrypt, err := helper.Encrypt(otpCode.OtpCode, uc.config.Server.SecretKey)
+	if err != nil {
+		uc.logger.Error("Failed encrypt otp code", zap.Error(err))
+		return response.InternalServerError("Failed encrypt otp code")
+	}
+
+	jsonPayload, err := json.Marshal(&entity.SendMailVerifyAccount{
+		UserID: user.ID,
+		Email:  user.Email,
+		Token:  otpCodeEncrypt,
+	})
+	if err != nil {
+		uc.logger.Error("Failed to marshal payload", zap.Error(err))
+		return response.InternalServerError("Failed send mail verify account")
+	}
+	task := asynq.NewTask(string(tasks.TypeSendEmailVerifyAccount), jsonPayload)
+	uc.asynqClient.EnqueueContext(ctx, task)
+
+	return response.Success("Resend Verify Account successfully", 0)
 }
 
 func (uc *authUseCase) createToken(tokenClaims Claims) (string, error) {

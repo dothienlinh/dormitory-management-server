@@ -31,27 +31,25 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
 }
 
 // GetByID retrieves a user by ID
-func (r *userRepository) GetByID(ctx context.Context, id uint) (*entity.User, error) {
-	var user entity.User
-	if err := r.db.WithContext(ctx).Table(user.TableName()).Preload("Room.RoomCategory").First(&user, id).Error; err != nil {
+func (r *userRepository) GetByID(ctx context.Context, user *entity.User) error {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Preload("Room.RoomCategory").First(user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("user with ID %d not found", id)
+			return fmt.Errorf("user with ID %d not found", user.ID)
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return fmt.Errorf("failed to get user: %w", err)
 	}
-	return &user, nil
+	return nil
 }
 
 // GetByEmail retrieves a user by email
-func (r *userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
-	var user entity.User
-	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("email = ?", email).First(&user).Error; err != nil {
+func (r *userRepository) GetByEmail(ctx context.Context, user *entity.User) error {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Where(user).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("user with email %s not found", email)
+			return fmt.Errorf("user with email %s not found", user.Email)
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return fmt.Errorf("failed to get user: %w", err)
 	}
-	return &user, nil
+	return nil
 }
 
 // List retrieves users based on filter

@@ -25,4 +25,6 @@ type AuthUseCase interface {
 
 	// Me returns the current user
 	Me(ctx context.Context, userID uint) response.StatusResponse
+	VerifyAccount(ctx context.Context, payload entity.VerifyAccount) response.StatusResponse
+	ResendVerifyAccount(ctx context.Context, payload entity.SendCodeEmail) response.StatusResponse
 }
