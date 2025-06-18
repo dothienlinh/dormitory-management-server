@@ -9,6 +9,7 @@ type RoomCategory struct {
 	Description string  `json:"description"`
 	Capacity    int     `json:"capacity"`
 	Price       float64 `json:"price"`
+	Acreage     int     `json:"acreage"`
 	Rooms       []Room  `json:"rooms,omitempty"`
 }
 

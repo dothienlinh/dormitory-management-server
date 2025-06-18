@@ -40,7 +40,7 @@ func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.User().GetUserByID(c, uint(id))
+		resp = h.useCases.User().GetUserByID(c, id)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -85,7 +85,7 @@ func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.User().UpdateUser(c, uint(id), &user)
+		resp = h.useCases.User().UpdateUser(c, id, &user)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -104,7 +104,7 @@ func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.User().DeleteUser(c, uint(id))
+		resp = h.useCases.User().DeleteUser(c, id)
 		c.JSON(resp.Status, resp.Response)
 	}
 }

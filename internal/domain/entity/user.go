@@ -186,11 +186,11 @@ type UserDTO struct {
 }
 
 type AddUserToRoom struct {
-	UserID uint `json:"user_id" binding:"required,numeric"`
-	RoomID uint `json:"room_id" binding:"required,numeric"`
+	UserID uint64 `json:"user_id" binding:"required,numeric"`
+	RoomID uint   `json:"room_id" binding:"required,numeric"`
 }
 
 type UserLeavesRoom struct {
-	UserID uint `json:"user_id" binding:"required,numeric"`
-	RoomID uint `json:"room_id" binding:"required,numeric"`
+	UserID uint64 `json:"user_id" binding:"required,numeric"`
+	RoomID uint   `json:"room_id" binding:"required,numeric"`
 }

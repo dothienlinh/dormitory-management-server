@@ -12,14 +12,14 @@ type RoomCategoryUseCase interface {
 	CreateRoomCategory(ctx context.Context, category *entity.CreateRoomCategory) response.StatusResponse
 
 	// GetRoomCategoryByID retrieves a room category by ID
-	GetRoomCategoryByID(ctx context.Context, id uint) response.StatusResponse
+	GetRoomCategoryByID(ctx context.Context, id uint64) response.StatusResponse
 
 	// GetListRoomCategories retrieves room categories based on filter
 	GetListRoomCategories(ctx context.Context, filter *entity.RoomCategoryFilter) response.StatusResponse
 
 	// UpdateRoomCategory updates a room category
-	UpdateRoomCategory(ctx context.Context, id uint, category *entity.UpdateRoomCategory) response.StatusResponse
+	UpdateRoomCategory(ctx context.Context, id uint64, category *entity.UpdateRoomCategory) response.StatusResponse
 
 	// DeleteRoomCategory deletes a room category
-	DeleteRoomCategory(ctx context.Context, id uint) response.StatusResponse
+	DeleteRoomCategory(ctx context.Context, id uint64) response.StatusResponse
 }

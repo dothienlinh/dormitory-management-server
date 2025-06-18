@@ -23,7 +23,7 @@ type UserRepository interface {
 	Update(ctx context.Context, user *entity.User) error
 
 	// Delete deletes a user by ID
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, id uint64) error
 
 	// AddUserToRoom adds a user to a room
 	AddUserToRoom(ctx context.Context, payload entity.AddUserToRoom) error

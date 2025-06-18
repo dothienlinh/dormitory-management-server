@@ -91,7 +91,7 @@ func (h *AuthHandler) Logout() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Auth().Logout(c, userID.(uint))
+		resp = h.useCases.Auth().Logout(c, userID.(uint64))
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -109,7 +109,7 @@ func (h *AuthHandler) Me() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Auth().Me(c, userID.(uint))
+		resp = h.useCases.Auth().Me(c, userID.(uint64))
 		c.JSON(resp.Status, resp.Response)
 	}
 }

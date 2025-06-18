@@ -10,7 +10,7 @@ type VerifyCodeEmail struct {
 }
 
 type SendMailVerifyAccount struct {
-	UserID uint   `json:"user_id" binding:"required,numeric"`
+	UserID uint64 `json:"user_id" binding:"required,numeric"`
 	Email  string `json:"email" binding:"required,email"`
 	Token  string `json:"token" binding:"required"`
 }

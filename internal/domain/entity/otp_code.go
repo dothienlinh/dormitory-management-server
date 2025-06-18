@@ -29,7 +29,7 @@ func (i OtpTypeEnum) String() string {
 
 type OtpCode struct {
 	Base
-	UserID         *uint   `json:"user_id"`
+	UserID         *uint64 `json:"user_id"`
 	Identifier     string  `json:"identifier"`
 	IdentifierType string  `json:"identifier_type"`
 	OtpCode        string  `json:"otp_code"`

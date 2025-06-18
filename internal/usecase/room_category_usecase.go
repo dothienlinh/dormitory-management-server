@@ -31,7 +31,7 @@ func (uc *roomCategoryUseCase) CreateRoomCategory(ctx context.Context, category 
 }
 
 // GetRoomCategoryByID retrieves a room category by ID
-func (uc *roomCategoryUseCase) GetRoomCategoryByID(ctx context.Context, id uint) response.StatusResponse {
+func (uc *roomCategoryUseCase) GetRoomCategoryByID(ctx context.Context, id uint64) response.StatusResponse {
 	category, err := uc.repos.RoomCategory().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get room category by ID", zap.Error(err))
@@ -53,7 +53,7 @@ func (uc *roomCategoryUseCase) GetListRoomCategories(ctx context.Context, filter
 }
 
 // UpdateRoomCategory updates a room category
-func (uc *roomCategoryUseCase) UpdateRoomCategory(ctx context.Context, id uint, categoryData *entity.UpdateRoomCategory) response.StatusResponse {
+func (uc *roomCategoryUseCase) UpdateRoomCategory(ctx context.Context, id uint64, categoryData *entity.UpdateRoomCategory) response.StatusResponse {
 	category, err := uc.repos.RoomCategory().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get room category for update", zap.Error(err))
@@ -83,7 +83,7 @@ func (uc *roomCategoryUseCase) UpdateRoomCategory(ctx context.Context, id uint, 
 }
 
 // DeleteRoomCategory deletes a room category
-func (uc *roomCategoryUseCase) DeleteRoomCategory(ctx context.Context, id uint) response.StatusResponse {
+func (uc *roomCategoryUseCase) DeleteRoomCategory(ctx context.Context, id uint64) response.StatusResponse {
 	// Check if category has active rooms
 	category, err := uc.repos.RoomCategory().GetByID(ctx, id)
 	if err != nil {

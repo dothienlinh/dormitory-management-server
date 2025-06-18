@@ -43,7 +43,7 @@ func (uc *roomUseCase) CreateRoom(ctx context.Context, room *entity.CreateRoom) 
 }
 
 // GetRoomByID retrieves a room by ID
-func (uc *roomUseCase) GetRoomByID(ctx context.Context, id uint) response.StatusResponse {
+func (uc *roomUseCase) GetRoomByID(ctx context.Context, id uint64) response.StatusResponse {
 	room, err := uc.repos.Room().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get room by ID", zap.Error(err))
@@ -65,7 +65,7 @@ func (uc *roomUseCase) GetListRooms(ctx context.Context, filter *entity.RoomFilt
 }
 
 // UpdateRoom updates a room
-func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint, roomData *entity.UpdateRoom) response.StatusResponse {
+func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *entity.UpdateRoom) response.StatusResponse {
 	room, err := uc.repos.Room().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get room for update", zap.Error(err))
@@ -100,7 +100,7 @@ func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint, roomData *entity
 }
 
 // DeleteRoom deletes a room
-func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint) response.StatusResponse {
+func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint64) response.StatusResponse {
 	// Check if room has active students
 	room, err := uc.repos.Room().GetByID(ctx, id)
 	if err != nil {

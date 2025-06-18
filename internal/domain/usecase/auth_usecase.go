@@ -18,13 +18,13 @@ type AuthUseCase interface {
 	RefreshToken(ctx context.Context, refreshToken string) response.StatusResponse
 
 	// Logout invalidates tokens
-	Logout(ctx context.Context, userID uint) response.StatusResponse
+	Logout(ctx context.Context, userID uint64) response.StatusResponse
 
 	// GenerateTokens generates access and refresh tokens
-	GenerateTokens(ctx context.Context, userID uint) (string, string, error)
+	GenerateTokens(ctx context.Context, userID uint64) (string, string, error)
 
 	// Me returns the current user
-	Me(ctx context.Context, userID uint) response.StatusResponse
+	Me(ctx context.Context, userID uint64) response.StatusResponse
 	VerifyAccount(ctx context.Context, payload entity.VerifyAccount) response.StatusResponse
 	ResendVerifyAccount(ctx context.Context, payload entity.SendCodeEmail) response.StatusResponse
 }

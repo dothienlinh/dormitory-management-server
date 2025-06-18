@@ -8,7 +8,6 @@ import (
 	"github.com/hibiken/asynq"
 )
 
-// useCases implements the usecase.UseCases interface
 type useCases struct {
 	user         usecase.UserUseCase
 	room         usecase.RoomUseCase
@@ -17,9 +16,9 @@ type useCases struct {
 	auth         usecase.AuthUseCase
 	dashboard    usecase.DashboardUseCase
 	email        usecase.EmailUseCase
+	facilities   usecase.FacilitiesUseCase
 }
 
-// NewUseCases creates a new UseCases instance
 func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.UseCases {
 	useCases := &useCases{}
 
@@ -30,40 +29,39 @@ func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClien
 	useCases.auth = NewAuthUseCase(repos, logger, asynqClient)
 	useCases.dashboard = NewDashboardUseCase(repos, logger)
 	useCases.email = NewEmailUseCase(repos, logger, asynqClient)
+	useCases.facilities = NewFacilitiesUseCase(repos, logger)
 
 	return useCases
 }
 
-// User returns the user use case
 func (uc *useCases) User() usecase.UserUseCase {
 	return uc.user
 }
 
-// Room returns the room use case
 func (uc *useCases) Room() usecase.RoomUseCase {
 	return uc.room
 }
 
-// RoomCategory returns the room category use case
 func (uc *useCases) RoomCategory() usecase.RoomCategoryUseCase {
 	return uc.roomCategory
 }
 
-// Contract returns the contract use case
 func (uc *useCases) Contract() usecase.ContractUseCase {
 	return uc.contract
 }
 
-// Auth returns the auth use case
 func (uc *useCases) Auth() usecase.AuthUseCase {
 	return uc.auth
 }
 
-// Dashboard returns the dashboard use case
 func (uc *useCases) Dashboard() usecase.DashboardUseCase {
 	return uc.dashboard
 }
 
 func (uc *useCases) Email() usecase.EmailUseCase {
 	return uc.email
+}
+
+func (uc *useCases) Facilities() usecase.FacilitiesUseCase {
+	return uc.facilities
 }

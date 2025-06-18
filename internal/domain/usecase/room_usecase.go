@@ -12,14 +12,14 @@ type RoomUseCase interface {
 	CreateRoom(ctx context.Context, room *entity.CreateRoom) response.StatusResponse
 
 	// GetRoomByID retrieves a room by ID
-	GetRoomByID(ctx context.Context, id uint) response.StatusResponse
+	GetRoomByID(ctx context.Context, id uint64) response.StatusResponse
 
 	// GetListRooms retrieves rooms based on filter
 	GetListRooms(ctx context.Context, filter *entity.RoomFilter) response.StatusResponse
 
 	// UpdateRoom updates a room
-	UpdateRoom(ctx context.Context, id uint, room *entity.UpdateRoom) response.StatusResponse
+	UpdateRoom(ctx context.Context, id uint64, room *entity.UpdateRoom) response.StatusResponse
 
 	// DeleteRoom deletes a room
-	DeleteRoom(ctx context.Context, id uint) response.StatusResponse
+	DeleteRoom(ctx context.Context, id uint64) response.StatusResponse
 }
