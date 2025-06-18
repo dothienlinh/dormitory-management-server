@@ -8,12 +8,12 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upCreateFacilitiesTable, downCreateFacilitiesTable)
+	goose.AddMigrationContext(upCreateAmenitiesTable, downCreateAmenitiesTable)
 }
 
-func upCreateFacilitiesTable(ctx context.Context, tx *sql.Tx) error {
+func upCreateAmenitiesTable(ctx context.Context, tx *sql.Tx) error {
 	query := `
-	CREATE TABLE facilities (
+	CREATE TABLE amenities (
 		id SERIAL PRIMARY KEY,
 		name VARCHAR(255),
 		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -29,9 +29,9 @@ func upCreateFacilitiesTable(ctx context.Context, tx *sql.Tx) error {
 	return nil
 }
 
-func downCreateFacilitiesTable(ctx context.Context, tx *sql.Tx) error {
+func downCreateAmenitiesTable(ctx context.Context, tx *sql.Tx) error {
 	query := `
-	DROP TABLE facilities;
+	DROP TABLE amenities;
 	`
 	if _, err := tx.ExecContext(ctx, query); err != nil {
 		return err

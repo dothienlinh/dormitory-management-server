@@ -11,44 +11,44 @@ import (
 	"go.uber.org/zap"
 )
 
-type FacilityHandler struct {
+type AmenityHandler struct {
 	useCases usecase.UseCases
 	logger   logger.Logger
 }
 
-func NewFacilityHandler(useCases usecase.UseCases, logger logger.Logger) *FacilityHandler {
-	return &FacilityHandler{
+func NewAmenityHandler(useCases usecase.UseCases, logger logger.Logger) *AmenityHandler {
+	return &AmenityHandler{
 		useCases: useCases,
 		logger:   logger,
 	}
 }
 
-func (h *FacilityHandler) Create() gin.HandlerFunc {
+func (h *AmenityHandler) Create() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		var payload entity.CreateFacility
+		var payload entity.CreateAmenity
 		if err := ctx.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
 			ctx.Error(err)
 			return
 		}
 
-		resp = h.useCases.Facilities().Create(ctx, &payload)
+		resp = h.useCases.Amenities().Create(ctx, &payload)
 
 		ctx.JSON(resp.Status, resp.Response)
 	}
 }
 
-func (h *FacilityHandler) List() gin.HandlerFunc {
+func (h *AmenityHandler) List() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		resp := h.useCases.Facilities().List(ctx)
+		resp := h.useCases.Amenities().List(ctx)
 
 		ctx.JSON(resp.Status, resp.Response)
 	}
 }
 
-func (h *FacilityHandler) Update() gin.HandlerFunc {
+func (h *AmenityHandler) Update() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
@@ -60,20 +60,20 @@ func (h *FacilityHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		var payload entity.UpdateFacility
+		var payload entity.UpdateAmenity
 		if err := ctx.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
 			ctx.Error(err)
 			return
 		}
 
-		resp = h.useCases.Facilities().Update(ctx, &payload, id)
+		resp = h.useCases.Amenities().Update(ctx, &payload, id)
 
 		ctx.JSON(resp.Status, resp.Response)
 	}
 }
 
-func (h *FacilityHandler) Delete() gin.HandlerFunc {
+func (h *AmenityHandler) Delete() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
@@ -85,7 +85,7 @@ func (h *FacilityHandler) Delete() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Facilities().Delete(ctx, id)
+		resp = h.useCases.Amenities().Delete(ctx, id)
 
 		ctx.JSON(resp.Status, resp.Response)
 	}

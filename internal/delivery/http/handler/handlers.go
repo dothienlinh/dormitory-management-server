@@ -13,7 +13,7 @@ type Handlers struct {
 	Auth         *AuthHandler
 	Dashboard    *DashboardHandler
 	Email        *EmailHandler
-	Facility     *FacilityHandler
+	Amenity      *AmenityHandler
 }
 
 func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
@@ -25,6 +25,6 @@ func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
 		Auth:         NewAuthHandler(useCases, logger),
 		Dashboard:    NewDashboardHandler(useCases, logger),
 		Email:        NewEmailHandler(useCases, logger),
-		Facility:     NewFacilityHandler(useCases, logger),
+		Amenity:      NewAmenityHandler(useCases, logger),
 	}
 }

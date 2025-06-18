@@ -6,14 +6,14 @@ import (
 	"dormitory_management/internal/domain/response"
 )
 
-type FacilitiesUseCase interface {
-	Create(ctx context.Context, payload *entity.CreateFacility) response.StatusResponse
+type AmenitiesUseCase interface {
+	Create(ctx context.Context, payload *entity.CreateAmenity) response.StatusResponse
 
 	List(ctx context.Context) response.StatusResponse
 
 	// Detail(ctx context.Context, id uint) response.StatusResponse
 
-	Update(ctx context.Context, payload *entity.UpdateFacility, id uint64) response.StatusResponse
+	Update(ctx context.Context, payload *entity.UpdateAmenity, id uint64) response.StatusResponse
 
 	Delete(ctx context.Context, id uint64) response.StatusResponse
 }

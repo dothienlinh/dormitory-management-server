@@ -383,9 +383,9 @@ func (uc *authUseCase) ResendVerifyAccount(ctx context.Context, payload entity.S
 	return response.Success("Resend Verify Account successfully", 0)
 }
 
-func (uc *authUseCase) createToken(tokenClaims Claims) (string, error) {
+func (uc *authUseCase) createToken(tokenClaims Claims, accessSecret string) (string, error) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(uc.config.JWT.AccessSecret))
+	accessTokenString, err := accessToken.SignedString([]byte(accessSecret))
 	if err != nil {
 		return "", fmt.Errorf("failed to sign access token: %w", err)
 	}
@@ -410,7 +410,7 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 		},
 	}
 
-	accessToken, err := uc.createToken(accessTokenClaims)
+	accessToken, err := uc.createToken(accessTokenClaims, uc.config.JWT.AccessSecret)
 	if err != nil {
 		return "", err
 	}
@@ -444,7 +444,7 @@ func (uc *authUseCase) createRefreshToken(ctx context.Context, user *entity.User
 		},
 	}
 
-	refreshToken, err := uc.createToken(refreshTokenClaims)
+	refreshToken, err := uc.createToken(refreshTokenClaims, uc.config.JWT.RefreshSecret)
 	if err != nil {
 		return "", err
 	}

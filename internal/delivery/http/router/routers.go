@@ -17,6 +17,6 @@ func SetupRoutes(router *gin.Engine, handlers *handler.Handlers, mw *middleware.
 		SetupContractRoutes(apiV1, handlers, mw)
 		SetupDashboardRoutes(apiV1, handlers, mw)
 		SetupEmailRoutes(apiV1, handlers, mw)
-		SetupFacilityRoutes(apiV1, handlers, mw)
+		SetupAmenityRoutes(apiV1, handlers, mw)
 	}
 }

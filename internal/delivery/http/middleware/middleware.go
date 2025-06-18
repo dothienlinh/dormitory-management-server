@@ -215,7 +215,7 @@ func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		if role != string(entity.UserRoleAdmin) {
+		if fmt.Sprintf("%v", role) != string(entity.UserRoleAdmin) {
 			resp := response.Unauthorized("Admin access required")
 			c.JSON(resp.Status, resp.Response)
 			c.Abort()

@@ -1,18 +1,18 @@
 package entity
 
-type Facilities struct {
+type Amenities struct {
 	Base
 	Name string `json:"name"`
 }
 
-func (Facilities) TableName() string {
-	return "facilities"
+func (Amenities) TableName() string {
+	return "amenities"
 }
 
-type CreateFacility struct {
+type CreateAmenity struct {
 	Name string `json:"name" binding:"required"`
 }
 
-type UpdateFacility struct {
+type UpdateAmenity struct {
 	Name string `json:"name" binding:"required"`
 }
