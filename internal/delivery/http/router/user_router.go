@@ -7,9 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupUserRoutes configures user related routes
 func SetupUserRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *middleware.Middleware) {
-	// User routes (requires authentication)
 	users := router.Group("/users", mw.AuthMiddleware())
 	{
 		users.GET("", handlers.User.GetListUsers())

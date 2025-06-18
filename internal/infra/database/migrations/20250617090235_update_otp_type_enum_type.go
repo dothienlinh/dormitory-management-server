@@ -48,8 +48,6 @@ func upUpdateOtpTypeEnumType(ctx context.Context, tx *sql.Tx) error {
 }
 
 func downUpdateOtpTypeEnumType(ctx context.Context, tx *sql.Tx) error {
-	// Note: This assumes the old enum had these values
-	// You should adjust this based on what the original enum actually contained
 	query := `
 		ALTER TYPE otp_type_enum RENAME TO _otp_type_enum_new;
 		

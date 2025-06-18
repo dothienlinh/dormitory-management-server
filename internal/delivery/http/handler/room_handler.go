@@ -11,13 +11,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// RoomHandler handles HTTP requests related to rooms
 type RoomHandler struct {
 	useCases usecase.UseCases
 	logger   logger.Logger
 }
 
-// NewRoomHandler creates a new RoomHandler
 func NewRoomHandler(useCases usecase.UseCases, logger logger.Logger) *RoomHandler {
 	return &RoomHandler{
 		useCases: useCases,
@@ -25,7 +23,6 @@ func NewRoomHandler(useCases usecase.UseCases, logger logger.Logger) *RoomHandle
 	}
 }
 
-// CreateRoom handles the request to create a room
 func (h *RoomHandler) CreateRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -43,7 +40,6 @@ func (h *RoomHandler) CreateRoom() gin.HandlerFunc {
 	}
 }
 
-// GetRoomByID handles the request to get a room by ID
 func (h *RoomHandler) GetRoomByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -62,7 +58,6 @@ func (h *RoomHandler) GetRoomByID() gin.HandlerFunc {
 	}
 }
 
-// GetListRooms handles the request to get a list of rooms
 func (h *RoomHandler) GetListRooms() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -81,7 +76,6 @@ func (h *RoomHandler) GetListRooms() gin.HandlerFunc {
 	}
 }
 
-// UpdateRoom handles the request to update a room
 func (h *RoomHandler) UpdateRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -107,7 +101,6 @@ func (h *RoomHandler) UpdateRoom() gin.HandlerFunc {
 	}
 }
 
-// DeleteRoom handles the request to delete a room
 func (h *RoomHandler) DeleteRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -126,13 +119,11 @@ func (h *RoomHandler) DeleteRoom() gin.HandlerFunc {
 	}
 }
 
-// RoomCategoryHandler handles HTTP requests related to room categories
 type RoomCategoryHandler struct {
 	useCases usecase.UseCases
 	logger   logger.Logger
 }
 
-// NewRoomCategoryHandler creates a new RoomCategoryHandler
 func NewRoomCategoryHandler(useCases usecase.UseCases, logger logger.Logger) *RoomCategoryHandler {
 	return &RoomCategoryHandler{
 		useCases: useCases,
@@ -140,7 +131,6 @@ func NewRoomCategoryHandler(useCases usecase.UseCases, logger logger.Logger) *Ro
 	}
 }
 
-// CreateRoomCategory handles the request to create a room category
 func (h *RoomCategoryHandler) CreateRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -158,7 +148,6 @@ func (h *RoomCategoryHandler) CreateRoomCategory() gin.HandlerFunc {
 	}
 }
 
-// GetRoomCategoryByID handles the request to get a room category by ID
 func (h *RoomCategoryHandler) GetRoomCategoryByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -177,7 +166,6 @@ func (h *RoomCategoryHandler) GetRoomCategoryByID() gin.HandlerFunc {
 	}
 }
 
-// GetListRoomCategories handles the request to get a list of room categories
 func (h *RoomCategoryHandler) GetListRoomCategories() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -196,7 +184,6 @@ func (h *RoomCategoryHandler) GetListRoomCategories() gin.HandlerFunc {
 	}
 }
 
-// UpdateRoomCategory handles the request to update a room category
 func (h *RoomCategoryHandler) UpdateRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -222,7 +209,6 @@ func (h *RoomCategoryHandler) UpdateRoomCategory() gin.HandlerFunc {
 	}
 }
 
-// DeleteRoomCategory handles the request to delete a room category
 func (h *RoomCategoryHandler) DeleteRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse

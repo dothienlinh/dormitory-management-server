@@ -5,7 +5,6 @@ import (
 	"dormitory_management/pkg/logger"
 )
 
-// Handlers contains all HTTP handlers
 type Handlers struct {
 	User         *UserHandler
 	Room         *RoomHandler
@@ -17,7 +16,6 @@ type Handlers struct {
 	Facility     *FacilityHandler
 }
 
-// NewHandlers creates a new Handlers instance
 func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
 	return &Handlers{
 		User:         NewUserHandler(useCases, logger),

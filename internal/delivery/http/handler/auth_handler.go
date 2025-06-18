@@ -10,13 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// AuthHandler handles HTTP requests related to authentication
 type AuthHandler struct {
 	useCases usecase.UseCases
 	logger   logger.Logger
 }
 
-// NewAuthHandler creates a new AuthHandler
 func NewAuthHandler(useCases usecase.UseCases, logger logger.Logger) *AuthHandler {
 	return &AuthHandler{
 		useCases: useCases,
@@ -24,7 +22,6 @@ func NewAuthHandler(useCases usecase.UseCases, logger logger.Logger) *AuthHandle
 	}
 }
 
-// Register handles the request to register a new user
 func (h *AuthHandler) Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -42,7 +39,6 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 	}
 }
 
-// Login handles the request to login a user
 func (h *AuthHandler) Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -60,7 +56,6 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 	}
 }
 
-// RefreshToken handles the request to refresh a token
 func (h *AuthHandler) RefreshToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -78,7 +73,6 @@ func (h *AuthHandler) RefreshToken() gin.HandlerFunc {
 	}
 }
 
-// Logout handles the request to logout a user
 func (h *AuthHandler) Logout() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -96,7 +90,6 @@ func (h *AuthHandler) Logout() gin.HandlerFunc {
 	}
 }
 
-// Me handles the request to get the current user
 func (h *AuthHandler) Me() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse

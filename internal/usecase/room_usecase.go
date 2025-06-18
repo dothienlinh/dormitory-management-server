@@ -12,13 +12,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// roomUseCase implements the usecase.RoomUseCase interface
 type roomUseCase struct {
 	repos  repository.Repositories
 	logger logger.Logger
 }
 
-// NewRoomUseCase creates a new room use case
 func NewRoomUseCase(repos repository.Repositories, logger logger.Logger) usecase.RoomUseCase {
 	return &roomUseCase{
 		repos:  repos,
@@ -26,9 +24,7 @@ func NewRoomUseCase(repos repository.Repositories, logger logger.Logger) usecase
 	}
 }
 
-// CreateRoom creates a new room
 func (uc *roomUseCase) CreateRoom(ctx context.Context, room *entity.CreateRoom) response.StatusResponse {
-	// Validate room category
 	if _, err := uc.repos.RoomCategory().GetByID(ctx, room.RoomCategoryID); err != nil {
 		uc.logger.Error("Failed to validate room category", zap.Error(err))
 		return response.BadRequest("Invalid room category")
@@ -42,7 +38,6 @@ func (uc *roomUseCase) CreateRoom(ctx context.Context, room *entity.CreateRoom) 
 	return response.Created(room)
 }
 
-// GetRoomByID retrieves a room by ID
 func (uc *roomUseCase) GetRoomByID(ctx context.Context, id uint64) response.StatusResponse {
 	room, err := uc.repos.Room().GetByID(ctx, id)
 	if err != nil {
@@ -53,7 +48,6 @@ func (uc *roomUseCase) GetRoomByID(ctx context.Context, id uint64) response.Stat
 	return response.Success(room, 1)
 }
 
-// GetListRooms retrieves rooms based on filter
 func (uc *roomUseCase) GetListRooms(ctx context.Context, filter *entity.RoomFilter) response.StatusResponse {
 	rooms, total, err := uc.repos.Room().List(ctx, filter)
 	if err != nil {
@@ -64,7 +58,6 @@ func (uc *roomUseCase) GetListRooms(ctx context.Context, filter *entity.RoomFilt
 	return response.Success(rooms, total)
 }
 
-// UpdateRoom updates a room
 func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *entity.UpdateRoom) response.StatusResponse {
 	room, err := uc.repos.Room().GetByID(ctx, id)
 	if err != nil {
@@ -72,7 +65,6 @@ func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *enti
 		return response.NotFound(fmt.Sprintf("Room with ID %d not found", id))
 	}
 
-	// Update room fields
 	if roomData.Name != "" {
 		room.Name = roomData.Name
 	}
@@ -83,7 +75,6 @@ func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *enti
 		room.Status = roomData.Status
 	}
 	if roomData.RoomCategoryID != 0 {
-		// Validate room category
 		if _, err := uc.repos.RoomCategory().GetByID(ctx, roomData.RoomCategoryID); err != nil {
 			uc.logger.Error("Failed to validate room category", zap.Error(err))
 			return response.BadRequest("Invalid room category")
@@ -99,9 +90,7 @@ func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *enti
 	return response.Success(room, 1)
 }
 
-// DeleteRoom deletes a room
 func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint64) response.StatusResponse {
-	// Check if room has active students
 	room, err := uc.repos.Room().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get room for deletion", zap.Error(err))
@@ -120,7 +109,6 @@ func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint64) response.Statu
 	return response.Success("Room deleted successfully", 0)
 }
 
-// roomCategoryUseCase implements the usecase.RoomCategoryUseCase interface
 type roomCategoryUseCase struct {
 	repos  repository.Repositories
 	logger logger.Logger

@@ -12,13 +12,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// userUseCase implements the usecase.UserUseCase interface
 type userUseCase struct {
 	repos  repository.Repositories
 	logger logger.Logger
 }
 
-// NewUserUseCase creates a new user use case
 func NewUserUseCase(repos repository.Repositories, logger logger.Logger) usecase.UserUseCase {
 	return &userUseCase{
 		repos:  repos,
@@ -26,7 +24,6 @@ func NewUserUseCase(repos repository.Repositories, logger logger.Logger) usecase
 	}
 }
 
-// GetUserByID retrieves a user by ID
 func (uc *userUseCase) GetUserByID(ctx context.Context, id uint64) response.StatusResponse {
 	user := &entity.User{
 		Base: entity.Base{ID: id},
@@ -39,7 +36,6 @@ func (uc *userUseCase) GetUserByID(ctx context.Context, id uint64) response.Stat
 	return response.Success(user, 1)
 }
 
-// GetListUsers retrieves users based on filter
 func (uc *userUseCase) GetListUsers(ctx context.Context, filter *entity.UserFilter) response.StatusResponse {
 	users, total, err := uc.repos.User().List(ctx, filter)
 	if err != nil {
@@ -50,7 +46,6 @@ func (uc *userUseCase) GetListUsers(ctx context.Context, filter *entity.UserFilt
 	return response.Success(users, total)
 }
 
-// UpdateUser updates a user
 func (uc *userUseCase) UpdateUser(ctx context.Context, id uint64, userData *entity.User) response.StatusResponse {
 	user := &entity.User{
 		Base: entity.Base{ID: id},
@@ -60,7 +55,6 @@ func (uc *userUseCase) UpdateUser(ctx context.Context, id uint64, userData *enti
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
 	}
 
-	// Update user fields
 	if userData.FullName != "" {
 		user.FullName = userData.FullName
 	}
@@ -88,7 +82,6 @@ func (uc *userUseCase) UpdateUser(ctx context.Context, id uint64, userData *enti
 	return response.Success(user, 1)
 }
 
-// DeleteUser deletes a user
 func (uc *userUseCase) DeleteUser(ctx context.Context, id uint64) response.StatusResponse {
 	user := &entity.User{
 		Base: entity.Base{ID: id},
@@ -106,7 +99,6 @@ func (uc *userUseCase) DeleteUser(ctx context.Context, id uint64) response.Statu
 	return response.Success("User deleted successfully", 0)
 }
 
-// AddUserToRoom adds a user to a room
 func (uc *userUseCase) AddUserToRoom(ctx context.Context, payload entity.AddUserToRoom) response.StatusResponse {
 	if err := uc.repos.User().AddUserToRoom(ctx, payload); err != nil {
 		uc.logger.Error("Failed to add user to room", zap.Error(err))
@@ -116,7 +108,6 @@ func (uc *userUseCase) AddUserToRoom(ctx context.Context, payload entity.AddUser
 	return response.Success("User added to room successfully", 0)
 }
 
-// UserLeavesRoom removes a user from a room
 func (uc *userUseCase) UserLeavesRoom(ctx context.Context, payload entity.UserLeavesRoom) response.StatusResponse {
 	if err := uc.repos.User().UserLeavesRoom(ctx, payload); err != nil {
 		uc.logger.Error("Failed to remove user from room", zap.Error(err))

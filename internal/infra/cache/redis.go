@@ -22,9 +22,7 @@ type RedisClient struct {
 	logger logger.Logger
 }
 
-// NewRedisClient creates a new Redis client connection
 func NewRedisClient(cfg config.RedisConfig, logger logger.Logger, ctx context.Context) (*RedisClient, error) {
-	// Create a new Redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
 		Password: cfg.Password,
@@ -41,7 +39,6 @@ func NewRedisClient(cfg config.RedisConfig, logger logger.Logger, ctx context.Co
 	return redisClient, nil
 }
 
-// Set sets a key-value pair in Redis with an expiration time
 func (r *RedisClient) Set(ctx context.Context, key string, value interface{}, expiration int) error {
 	ttl := time.Duration(expiration) * time.Second
 	if err := r.Client.Set(ctx, key, value, ttl).Err(); err != nil {
@@ -60,7 +57,6 @@ func (r *RedisClient) Set(ctx context.Context, key string, value interface{}, ex
 	return nil
 }
 
-// Get retrieves a value from Redis by key
 func (r *RedisClient) Get(ctx context.Context, key string) (string, error) {
 	val, err := r.Client.Get(ctx, key).Result()
 	if err != nil {
@@ -70,7 +66,6 @@ func (r *RedisClient) Get(ctx context.Context, key string) (string, error) {
 	return val, nil
 }
 
-// Del deletes a key from Redis
 func (r *RedisClient) Del(ctx context.Context, keys ...string) error {
 	if err := r.Client.Del(ctx, keys...).Err(); err != nil {
 		r.logger.Error("failed to delete key from Redis", zap.Strings("keys", keys), zap.Error(err))

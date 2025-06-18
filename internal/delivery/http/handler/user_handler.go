@@ -11,13 +11,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// UserHandler handles HTTP requests related to users
 type UserHandler struct {
 	useCases usecase.UseCases
 	logger   logger.Logger
 }
 
-// NewUserHandler creates a new UserHandler
 func NewUserHandler(useCases usecase.UseCases, logger logger.Logger) *UserHandler {
 	return &UserHandler{
 		useCases: useCases,
@@ -25,7 +23,6 @@ func NewUserHandler(useCases usecase.UseCases, logger logger.Logger) *UserHandle
 	}
 }
 
-// GetUserByID handles the request to get a user by ID
 func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -45,7 +42,6 @@ func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 	}
 }
 
-// GetListUsers handles the request to get a list of users
 func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -64,7 +60,6 @@ func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 	}
 }
 
-// UpdateUser handles the request to update a user
 func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -90,7 +85,6 @@ func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 	}
 }
 
-// DeleteUser handles the request to delete a user
 func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -109,7 +103,6 @@ func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 	}
 }
 
-// AddUserToRoom handles the request to add a user to a room
 func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -127,7 +120,6 @@ func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 	}
 }
 
-// UserLeavesRoom handles the request to remove a user from a room
 func (h *UserHandler) UserLeavesRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
