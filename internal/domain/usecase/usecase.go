@@ -8,5 +8,5 @@ type UseCases interface {
 	Auth() AuthUseCase
 	Dashboard() DashboardUseCase
 	Email() EmailUseCase
-	Facilities() FacilitiesUseCase
+	Amenities() AmenitiesUseCase
 }

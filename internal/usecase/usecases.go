@@ -16,7 +16,7 @@ type useCases struct {
 	auth         usecase.AuthUseCase
 	dashboard    usecase.DashboardUseCase
 	email        usecase.EmailUseCase
-	facilities   usecase.FacilitiesUseCase
+	amenities    usecase.AmenitiesUseCase
 }
 
 func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.UseCases {
@@ -29,7 +29,7 @@ func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClien
 	useCases.auth = NewAuthUseCase(repos, logger, asynqClient)
 	useCases.dashboard = NewDashboardUseCase(repos, logger)
 	useCases.email = NewEmailUseCase(repos, logger, asynqClient)
-	useCases.facilities = NewFacilitiesUseCase(repos, logger)
+	useCases.amenities = NewAmenitiesUseCase(repos, logger)
 
 	return useCases
 }
@@ -62,6 +62,6 @@ func (uc *useCases) Email() usecase.EmailUseCase {
 	return uc.email
 }
 
-func (uc *useCases) Facilities() usecase.FacilitiesUseCase {
-	return uc.facilities
+func (uc *useCases) Amenities() usecase.AmenitiesUseCase {
+	return uc.amenities
 }
