@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// User roles
 type UserRole string
 
 const (
@@ -16,7 +15,6 @@ const (
 	UserRoleAdmin   UserRole = "admin"
 )
 
-// User genders
 type UserGender string
 
 const (
@@ -25,7 +23,6 @@ const (
 	UserGenderOther  UserGender = "other"
 )
 
-// User statuses
 type UserStatus string
 
 const (
@@ -34,7 +31,6 @@ const (
 	UserStatusAbsent   UserStatus = "absent"
 )
 
-// User entity
 type User struct {
 	Base
 	FullName    string      `json:"full_name"`
@@ -71,7 +67,6 @@ type UpdateUser struct {
 	Avatar      *string     `json:"avatar"`
 }
 
-// UserSimple is a simplified version of User for limited data exposure
 type UserSimple struct {
 	Base
 	FullName    string     `json:"full_name"`
@@ -84,7 +79,6 @@ type UserSimple struct {
 	Avatar      *string    `json:"avatar"`
 }
 
-// ToSimple converts a User to UserSimple
 func (u *User) ToSimple() UserSimple {
 	return UserSimple{
 		Base:        u.Base,
@@ -99,22 +93,18 @@ func (u *User) ToSimple() UserSimple {
 	}
 }
 
-// BeforeCreate hook for User
 func (u *User) BeforeCreate(tx *gorm.DB) error {
-	// Hash password
 	hashedPassword, err := helper.HashPassword(u.Password)
 	if err != nil {
 		return err
 	}
 	u.Password = hashedPassword
 
-	// Generate student code based on timestamp
 	u.StudentCode = time.Now().Format("20060102150405")
 
 	return nil
 }
 
-// UserFilter for filtering users
 type UserFilter struct {
 	Status  UserStatus `form:"status" binding:"omitempty,oneof=active inactive absent"`
 	Keyword string     `form:"keyword"`
@@ -122,7 +112,6 @@ type UserFilter struct {
 	Pagination
 }
 
-// Build creates the SQL WHERE clause and parameters for the filter
 func (f UserFilter) Build() (string, []interface{}) {
 	conditions := []string{"role = ?"}
 	values := []interface{}{UserRoleStudent}
@@ -148,7 +137,6 @@ func (f UserFilter) Build() (string, []interface{}) {
 	return whereClause, values
 }
 
-// UserRegister data transfer object for user registration
 type UserRegister struct {
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
@@ -156,18 +144,15 @@ type UserRegister struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
-// UserLogin data transfer object for user login
 type UserLogin struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
 }
 
-// UserRefreshToken data transfer object for refresh token
 type UserRefreshToken struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
-// UserDTO is a data transfer object for User entity
 type UserDTO struct {
 	ID          uint       `json:"id"`
 	FullName    string     `json:"full_name"`

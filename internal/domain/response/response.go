@@ -4,7 +4,6 @@ import (
 	"net/http"
 )
 
-// Response is the standard API response format
 type Response struct {
 	Success bool              `json:"success"`
 	Message string            `json:"message"`
@@ -14,7 +13,6 @@ type Response struct {
 	Errors  map[string]string `json:"errors,omitempty"`
 }
 
-// SuccessResponse returns a success response
 func SuccessResponse(data interface{}, total int64) Response {
 	return Response{
 		Success: true,
@@ -24,7 +22,6 @@ func SuccessResponse(data interface{}, total int64) Response {
 	}
 }
 
-// ErrorResponse returns an error response
 func ErrorResponse(message string, err string) Response {
 	return Response{
 		Success: false,
@@ -33,13 +30,11 @@ func ErrorResponse(message string, err string) Response {
 	}
 }
 
-// StatusResponse contains HTTP status code and response
 type StatusResponse struct {
 	Status   int
 	Response Response
 }
 
-// NewStatusResponse creates a new StatusResponse
 func NewStatusResponse(status int, response Response) StatusResponse {
 	return StatusResponse{
 		Status:   status,
@@ -47,7 +42,6 @@ func NewStatusResponse(status int, response Response) StatusResponse {
 	}
 }
 
-// Success returns a success status response
 func Success(data interface{}, total int64) StatusResponse {
 	return NewStatusResponse(
 		http.StatusOK,
@@ -55,7 +49,6 @@ func Success(data interface{}, total int64) StatusResponse {
 	)
 }
 
-// Created returns a created status response
 func Created(data interface{}) StatusResponse {
 	return NewStatusResponse(
 		http.StatusCreated,
@@ -63,7 +56,6 @@ func Created(data interface{}) StatusResponse {
 	)
 }
 
-// BadRequest returns a bad request status response
 func BadRequest(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusBadRequest,
@@ -71,7 +63,6 @@ func BadRequest(message string) StatusResponse {
 	)
 }
 
-// Unauthorized returns an unauthorized status response
 func Unauthorized(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusUnauthorized,
@@ -79,7 +70,6 @@ func Unauthorized(message string) StatusResponse {
 	)
 }
 
-// Forbidden returns a forbidden status response
 func Forbidden(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusForbidden,
@@ -87,7 +77,6 @@ func Forbidden(message string) StatusResponse {
 	)
 }
 
-// NotFound returns a not found status response
 func NotFound(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusNotFound,
@@ -95,7 +84,6 @@ func NotFound(message string) StatusResponse {
 	)
 }
 
-// InternalServerError returns an internal server error status response
 func InternalServerError(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusInternalServerError,
@@ -103,7 +91,6 @@ func InternalServerError(message string) StatusResponse {
 	)
 }
 
-// ValidationError returns a validation error status response
 func ValidationError(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusUnprocessableEntity,
@@ -111,7 +98,6 @@ func ValidationError(message string) StatusResponse {
 	)
 }
 
-// DBError returns a database error status response
 func DBError(message string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusInternalServerError,
@@ -119,7 +105,6 @@ func DBError(message string) StatusResponse {
 	)
 }
 
-// Validation returns a validation status response
 func Validation(message string, errors map[string]string) StatusResponse {
 	return NewStatusResponse(
 		http.StatusBadRequest,

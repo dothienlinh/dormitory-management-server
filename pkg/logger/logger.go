@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Logger interface defines methods that any logger implementation must satisfy
 type Logger interface {
 	Debug(msg string, fields ...zap.Field)
 	Info(msg string, fields ...zap.Field)
@@ -19,20 +18,16 @@ type Logger interface {
 	Sync() error
 }
 
-// zapLogger implements the Logger interface using zap
 type zapLogger struct {
 	logger *zap.Logger
 }
 
-// NewLogger creates a new logger instance
 func NewLogger(level string) Logger {
-	// Parse the log level
 	var logLevel zapcore.Level
 	if err := logLevel.UnmarshalText([]byte(level)); err != nil {
 		logLevel = zapcore.InfoLevel
 	}
 
-	// Create encoder config
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "timestamp",
 		LevelKey:       "level",
@@ -47,14 +42,12 @@ func NewLogger(level string) Logger {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	// Create the core
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)),
 		zap.NewAtomicLevelAt(logLevel),
 	)
 
-	// Create the logger with caller and stacktrace
 	logger := zap.New(
 		core,
 		zap.AddCaller(),
@@ -67,27 +60,22 @@ func NewLogger(level string) Logger {
 	}
 }
 
-// Debug logs a message at DebugLevel
 func (l *zapLogger) Debug(msg string, fields ...zap.Field) {
 	l.logger.Debug(msg, fields...)
 }
 
-// Info logs a message at InfoLevel
 func (l *zapLogger) Info(msg string, fields ...zap.Field) {
 	l.logger.Info(msg, fields...)
 }
 
-// Warn logs a message at WarnLevel
 func (l *zapLogger) Warn(msg string, fields ...zap.Field) {
 	l.logger.Warn(msg, fields...)
 }
 
-// Error logs a message at ErrorLevel
 func (l *zapLogger) Error(msg string, fields ...zap.Field) {
 	l.logger.Error(msg, fields...)
 }
 
-// Fatal logs a message at FatalLevel and then exits with status code 1
 func (l *zapLogger) Fatal(msg string, err error, fields ...zap.Field) {
 	if err != nil {
 		fields = append(fields, zap.Error(err))
@@ -95,12 +83,10 @@ func (l *zapLogger) Fatal(msg string, err error, fields ...zap.Field) {
 	l.logger.Fatal(msg, fields...)
 }
 
-// With creates a child logger with the given fields
 func (l *zapLogger) With(fields ...zap.Field) *zap.Logger {
 	return l.logger.With(fields...)
 }
 
-// Sync flushes any buffered log entries
 func (l *zapLogger) Sync() error {
 	return l.logger.Sync()
 }

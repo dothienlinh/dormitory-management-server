@@ -1,6 +1,5 @@
 package entity
 
-// Room entity
 type Room struct {
 	Base
 	Name           string       `json:"name"`
@@ -29,7 +28,6 @@ func (Room) TableName() string {
 	return "rooms"
 }
 
-// RoomStatus represents the status of a room
 type RoomStatus string
 
 const (

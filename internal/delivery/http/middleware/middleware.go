@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Claims is the custom JWT claims
 type Claims struct {
 	UserID       uint64 `json:"user_id"`
 	Email        string `json:"email"`
@@ -30,14 +29,12 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// Middleware contains all HTTP middleware handlers
 type Middleware struct {
 	repos  repository.Repositories
 	logger logger.Logger
 	config *config.Config
 }
 
-// NewMiddleware creates a new middleware instance
 func NewMiddleware(repos repository.Repositories, logger logger.Logger) *Middleware {
 	return &Middleware{
 		repos:  repos,
@@ -46,7 +43,6 @@ func NewMiddleware(repos repository.Repositories, logger logger.Logger) *Middlew
 	}
 }
 
-// CORSMiddleware handles Cross-Origin Resource Sharing
 func (m *Middleware) CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -63,16 +59,13 @@ func (m *Middleware) CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-// LoggerMiddleware logs each request
 func (m *Middleware) LoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path
 
-		// Process request
 		c.Next()
 
-		// After request
 		latency := time.Since(start)
 		status := c.Writer.Status()
 
@@ -86,7 +79,6 @@ func (m *Middleware) LoggerMiddleware() gin.HandlerFunc {
 	}
 }
 
-// AuthMiddleware authenticates requests
 func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -97,7 +89,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Check if the header has the "Bearer " prefix
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			resp := response.Unauthorized("Invalid authorization format")
 			c.JSON(resp.Status, resp.Response)
@@ -105,7 +96,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Extract the token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		decryptToken, err := helper.Decrypt(tokenString, m.config.Server.SecretKey)
 		if err != nil {
@@ -116,9 +106,7 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Parse and validate the token
 		token, err := jwt.ParseWithClaims(decryptToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-			// Validate the signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
@@ -132,7 +120,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Check if the token is valid
 		if !token.Valid {
 			m.logger.Error("Invalid token")
 			resp := response.Unauthorized("Invalid token")
@@ -141,7 +128,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Extract the claims from the token
 		claims, ok := token.Claims.(*Claims)
 		if !ok {
 			m.logger.Error("Failed to extract claims from token")
@@ -168,7 +154,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Get user
 		user := &entity.User{
 			Base: entity.Base{
 				ID: claims.UserID,
@@ -182,7 +167,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			// Set user cache
 			err = m.repos.Auth().SetUserCache(c, user, m.config.JWT.AccessExpiresIn)
 			if err != nil {
 				m.logger.Error("Failed to set user cache", zap.Error(err))
@@ -192,7 +176,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			// Set user in context
 			m.setUserInContext(c, user)
 			c.Next()
 			return
@@ -210,7 +193,6 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Set the user ID and role in the context
 		m.setUserInContext(c, user)
 
 		c.Next()
@@ -223,10 +205,8 @@ func (m *Middleware) setUserInContext(c *gin.Context, user *entity.User) {
 	c.Set("userEmail", user.Email)
 }
 
-// AdminMiddleware ensures the user has admin role
 func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// This assumes AuthMiddleware has already been run
 		role, exists := c.Get("userRole")
 		if !exists {
 			resp := response.Unauthorized("User role not found")
@@ -235,7 +215,6 @@ func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Check if user is admin
 		if role != string(entity.UserRoleAdmin) {
 			resp := response.Unauthorized("Admin access required")
 			c.JSON(resp.Status, resp.Response)
@@ -247,7 +226,6 @@ func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
-// ErrorMiddleware handles errors globally
 func (m *Middleware) ErrorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()

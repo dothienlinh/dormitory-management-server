@@ -11,13 +11,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// ContractHandler handles HTTP requests related to contracts
 type ContractHandler struct {
 	useCases usecase.UseCases
 	logger   logger.Logger
 }
 
-// NewContractHandler creates a new ContractHandler
 func NewContractHandler(useCases usecase.UseCases, logger logger.Logger) *ContractHandler {
 	return &ContractHandler{
 		useCases: useCases,
@@ -25,7 +23,6 @@ func NewContractHandler(useCases usecase.UseCases, logger logger.Logger) *Contra
 	}
 }
 
-// CreateContract handles the request to create a contract
 func (h *ContractHandler) CreateContract() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -43,7 +40,6 @@ func (h *ContractHandler) CreateContract() gin.HandlerFunc {
 	}
 }
 
-// GetContractByID handles the request to get a contract by ID
 func (h *ContractHandler) GetContractByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -62,7 +58,6 @@ func (h *ContractHandler) GetContractByID() gin.HandlerFunc {
 	}
 }
 
-// GetContractByUserID handles the request to get a contract by user ID
 func (h *ContractHandler) GetContractByUserID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -81,7 +76,6 @@ func (h *ContractHandler) GetContractByUserID() gin.HandlerFunc {
 	}
 }
 
-// GetListContracts handles the request to get a list of contracts
 func (h *ContractHandler) GetListContracts() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -100,7 +94,6 @@ func (h *ContractHandler) GetListContracts() gin.HandlerFunc {
 	}
 }
 
-// UpdateContract handles the request to update a contract
 func (h *ContractHandler) UpdateContract() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
@@ -126,7 +119,6 @@ func (h *ContractHandler) UpdateContract() gin.HandlerFunc {
 	}
 }
 
-// DeleteContract handles the request to delete a contract
 func (h *ContractHandler) DeleteContract() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse

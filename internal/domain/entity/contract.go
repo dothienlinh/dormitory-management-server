@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// ContractStatus represents the status of a contract
 type ContractStatus string
 
 const (
@@ -13,7 +12,6 @@ const (
 	ContractStatusCancelled ContractStatus = "cancelled"
 )
 
-// Contract entity
 type Contract struct {
 	Base
 	UserID      uint           `json:"user_id"`
@@ -32,7 +30,6 @@ func (Contract) TableName() string {
 	return "contracts"
 }
 
-// CreateContract is the data transfer object for creating a contract
 type CreateContract struct {
 	UserID      uint64         `json:"user_id" binding:"required,numeric"`
 	RoomID      uint64         `json:"room_id" binding:"required,numeric"`
@@ -43,7 +40,6 @@ type CreateContract struct {
 	Description string         `json:"description" binding:"omitempty"`
 }
 
-// UpdateContract is the data transfer object for updating a contract
 type UpdateContract struct {
 	Status      ContractStatus `json:"status" binding:"required,oneof=active inactive cancelled"`
 	StartDate   *time.Time     `json:"start_date" binding:"omitempty,datetime"`
@@ -52,7 +48,6 @@ type UpdateContract struct {
 	Description *string        `json:"description" binding:"omitempty"`
 }
 
-// ContractDTO is a data transfer object for Contract entity
 type ContractDTO struct {
 	ID          uint64         `json:"id"`
 	UserID      uint64         `json:"user_id"`
@@ -68,7 +63,6 @@ type ContractDTO struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-// ContractFilter for filtering contracts
 type ContractFilter struct {
 	Status  ContractStatus `form:"status" binding:"omitempty,oneof=active inactive cancelled"`
 	UserID  uint64         `form:"user_id"`

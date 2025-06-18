@@ -24,7 +24,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Claims is the custom JWT claims
 type Claims struct {
 	UserID       uint64 `json:"user_id"`
 	Email        string `json:"email"`
@@ -33,7 +32,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// authUseCase implements the usecase.AuthUseCase interface
 type authUseCase struct {
 	repos       repository.Repositories
 	logger      logger.Logger
@@ -41,7 +39,6 @@ type authUseCase struct {
 	asynqClient *asynq.Client
 }
 
-// NewAuthUseCase creates a new auth use case
 func NewAuthUseCase(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.AuthUseCase {
 	cfg := config.LoadConfig()
 	return &authUseCase{
@@ -52,14 +49,11 @@ func NewAuthUseCase(repos repository.Repositories, logger logger.Logger, asynqCl
 	}
 }
 
-// Register registers a new user
 func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegister) response.StatusResponse {
-	// Check if email already exists
 	if err := uc.repos.User().GetByEmail(ctx, &entity.User{Email: userData.Email}); err == nil {
 		return response.BadRequest("Email already exists")
 	}
 
-	// Create user with student role
 	user := &entity.User{
 		FullName: userData.FullName,
 		Email:    userData.Email,
@@ -105,9 +99,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 	return response.Success(user, 1)
 }
 
-// Me returns the current user
 func (uc *authUseCase) Me(ctx context.Context, userID uint64) response.StatusResponse {
-	// Get user from cache
 	user := &entity.User{
 		Base: entity.Base{ID: userID},
 	}
@@ -133,7 +125,6 @@ func (uc *authUseCase) Me(ctx context.Context, userID uint64) response.StatusRes
 	return response.Success(user, 1)
 }
 
-// Login authenticates a user and returns tokens
 func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) response.StatusResponse {
 	user := &entity.User{
 		Email:    loginData.Email,
@@ -149,7 +140,6 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 		return response.Forbidden("Unverified user")
 	}
 
-	// Generate tokens
 	accessToken, refreshToken, err := uc.GenerateTokens(ctx, user.ID)
 	if err != nil {
 		uc.logger.Error("Failed to generate tokens", zap.Error(err))
@@ -177,7 +167,6 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 	}, 1)
 }
 
-// RefreshToken refreshes an access token
 func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) response.StatusResponse {
 	decryptRefreshToken, err := helper.Decrypt(refreshToken, uc.config.Server.SecretKey)
 	if err != nil {
@@ -186,7 +175,6 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 	}
 
 	token, err := jwt.ParseWithClaims(decryptRefreshToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -200,14 +188,12 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 		uc.logger.Error("Invalid refresh token", zap.Error(err))
 		return response.Unauthorized("Invalid refresh token")
 	}
-	// Extract the claims from the token
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
 		uc.logger.Error("Failed to extract claims from token", zap.Error(err))
 		return response.Unauthorized("Invalid refresh token")
 	}
 
-	// Verify refresh token in Redis
 	tokenVersion, err := uc.repos.Auth().CheckTokenVersion(ctx, entity.RefreshToken, claims.UserID)
 	if err != nil {
 		uc.logger.Error("Failed to check token version", zap.Error(err))
@@ -218,7 +204,6 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 		return response.Unauthorized("Invalid refresh token")
 	}
 
-	// Get user
 	user := &entity.User{
 		Base: entity.Base{ID: claims.UserID},
 	}
@@ -227,7 +212,6 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 		return response.Unauthorized("User not found")
 	}
 
-	// Generate new tokens
 	accessToken, err := uc.createAccessToken(ctx, user)
 	if err != nil {
 		uc.logger.Error("Failed to create access token", zap.Error(err))
@@ -245,7 +229,6 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 	}, 1)
 }
 
-// Logout invalidates tokens
 func (uc *authUseCase) Logout(ctx context.Context, userID uint64) response.StatusResponse {
 	if err := uc.repos.Auth().InvalidateToken(ctx, entity.AccessToken, userID); err != nil {
 		uc.logger.Error("Failed to invalidate token", zap.Error(err))
@@ -265,9 +248,7 @@ func (uc *authUseCase) Logout(ctx context.Context, userID uint64) response.Statu
 	return response.Success("Logged out successfully", 0)
 }
 
-// GenerateTokens generates access and refresh tokens
 func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint64) (string, string, error) {
-	// Get user
 	user := &entity.User{
 		Base: entity.Base{ID: userID},
 	}
@@ -412,7 +393,6 @@ func (uc *authUseCase) createToken(tokenClaims Claims) (string, error) {
 	return accessTokenString, nil
 }
 
-// createAccessToken creates an access token
 func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User) (string, error) {
 	expiresIn := uc.config.JWT.AccessExpiresIn
 	uuid := uuid.New()
@@ -448,7 +428,6 @@ func (uc *authUseCase) createAccessToken(ctx context.Context, user *entity.User)
 	return accessToken, nil
 }
 
-// createRefreshToken creates a refresh token
 func (uc *authUseCase) createRefreshToken(ctx context.Context, user *entity.User) (string, error) {
 	uuid := uuid.New()
 	refreshTokenClaims := Claims{

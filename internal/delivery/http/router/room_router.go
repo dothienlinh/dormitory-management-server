@@ -7,15 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRoomRoutes configures room related routes
 func SetupRoomRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *middleware.Middleware) {
-	// Room routes
 	rooms := router.Group("/rooms")
 	{
 		rooms.GET("", handlers.Room.GetListRooms())
 		rooms.GET("/:id", handlers.Room.GetRoomByID())
 
-		// These routes require authentication and admin role
 		roomsAdmin := rooms.Group("", mw.AuthMiddleware(), mw.AdminMiddleware())
 		{
 			roomsAdmin.POST("", handlers.Room.CreateRoom())

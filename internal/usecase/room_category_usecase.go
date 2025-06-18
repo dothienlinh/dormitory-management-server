@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewRoomCategoryUseCase creates a new room category use case
 func NewRoomCategoryUseCase(repos repository.Repositories, logger logger.Logger) usecase.RoomCategoryUseCase {
 	return &roomCategoryUseCase{
 		repos:  repos,
@@ -20,7 +19,6 @@ func NewRoomCategoryUseCase(repos repository.Repositories, logger logger.Logger)
 	}
 }
 
-// CreateRoomCategory creates a new room category
 func (uc *roomCategoryUseCase) CreateRoomCategory(ctx context.Context, category *entity.CreateRoomCategory) response.StatusResponse {
 	if err := uc.repos.RoomCategory().Create(ctx, category); err != nil {
 		uc.logger.Error("Failed to create room category", zap.Error(err))
@@ -30,7 +28,6 @@ func (uc *roomCategoryUseCase) CreateRoomCategory(ctx context.Context, category 
 	return response.Created(category)
 }
 
-// GetRoomCategoryByID retrieves a room category by ID
 func (uc *roomCategoryUseCase) GetRoomCategoryByID(ctx context.Context, id uint64) response.StatusResponse {
 	category, err := uc.repos.RoomCategory().GetByID(ctx, id)
 	if err != nil {
@@ -41,7 +38,6 @@ func (uc *roomCategoryUseCase) GetRoomCategoryByID(ctx context.Context, id uint6
 	return response.Success(category, 1)
 }
 
-// GetListRoomCategories retrieves room categories based on filter
 func (uc *roomCategoryUseCase) GetListRoomCategories(ctx context.Context, filter *entity.RoomCategoryFilter) response.StatusResponse {
 	categories, total, err := uc.repos.RoomCategory().List(ctx, filter)
 	if err != nil {
@@ -52,7 +48,6 @@ func (uc *roomCategoryUseCase) GetListRoomCategories(ctx context.Context, filter
 	return response.Success(categories, total)
 }
 
-// UpdateRoomCategory updates a room category
 func (uc *roomCategoryUseCase) UpdateRoomCategory(ctx context.Context, id uint64, categoryData *entity.UpdateRoomCategory) response.StatusResponse {
 	category, err := uc.repos.RoomCategory().GetByID(ctx, id)
 	if err != nil {
@@ -60,7 +55,6 @@ func (uc *roomCategoryUseCase) UpdateRoomCategory(ctx context.Context, id uint64
 		return response.NotFound(fmt.Sprintf("Room category with ID %d not found", id))
 	}
 
-	// Update category fields
 	if categoryData.Name != "" {
 		category.Name = categoryData.Name
 	}
@@ -82,9 +76,7 @@ func (uc *roomCategoryUseCase) UpdateRoomCategory(ctx context.Context, id uint64
 	return response.Success(category, 1)
 }
 
-// DeleteRoomCategory deletes a room category
 func (uc *roomCategoryUseCase) DeleteRoomCategory(ctx context.Context, id uint64) response.StatusResponse {
-	// Check if category has active rooms
 	category, err := uc.repos.RoomCategory().GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed to get room category for deletion", zap.Error(err))

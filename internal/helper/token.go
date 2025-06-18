@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 )
 
-// GenerateRandomString generates a random string of specified length
 func GenerateRandomString(length int) (string, error) {
 	b := make([]byte, length)
 	_, err := rand.Read(b)

@@ -13,26 +13,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Server represents the HTTP server
 type Server struct {
 	router *gin.Engine
 	config *config.Config
 }
 
-// NewServer creates a new HTTP server
 func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Middleware) *Server {
-	// Set Gin mode
 	gin.SetMode(cfg.Server.Mode)
 
-	// Create router
 	ginRouter := gin.New()
 
-	// Use middlewares
 	ginRouter.Use(gin.CustomRecovery(mw.CustomRecovery()))
 	ginRouter.Use(mw.LoggerMiddleware())
 	ginRouter.Use(mw.ErrorMiddleware())
 
-	// Configure CORS
 	ginRouter.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -42,19 +36,16 @@ func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Mi
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// ping
 	ginRouter.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, map[string]string{
 			"message": "pong",
 		})
 	})
 
-	// webhook
 	ginRouter.GET("/answerurl", func(ctx *gin.Context) {
 		log.Println("=======================================================================>answerurl<=======================================================================")
 	})
 
-	// Set up routes
 	router.SetupRoutes(ginRouter, handlers, mw)
 
 	return &Server{
@@ -63,7 +54,6 @@ func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Mi
 	}
 }
 
-// Run starts the HTTP server
 func (s *Server) Run() error {
 	return s.router.Run(fmt.Sprintf(":%s", s.config.Server.Port))
 }

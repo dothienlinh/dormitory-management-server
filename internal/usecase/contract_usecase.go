@@ -12,13 +12,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// contractUseCase implements the usecase.ContractUseCase interface
 type contractUseCase struct {
 	repos  repository.Repositories
 	logger logger.Logger
 }
 
-// NewContractUseCase creates a new contract use case
 func NewContractUseCase(repos repository.Repositories, logger logger.Logger) usecase.ContractUseCase {
 	return &contractUseCase{
 		repos:  repos,
@@ -26,9 +24,7 @@ func NewContractUseCase(repos repository.Repositories, logger logger.Logger) use
 	}
 }
 
-// CreateContract creates a new contract
 func (uc *contractUseCase) CreateContract(ctx context.Context, createContract *entity.CreateContract) response.StatusResponse {
-	// Validate user
 	user := &entity.User{
 		Base: entity.Base{ID: createContract.UserID},
 	}
@@ -37,14 +33,12 @@ func (uc *contractUseCase) CreateContract(ctx context.Context, createContract *e
 		return response.BadRequest("Invalid user")
 	}
 
-	// Validate room
 	room, err := uc.repos.Room().GetByID(ctx, createContract.RoomID)
 	if err != nil {
 		uc.logger.Error("Failed to validate room", zap.Error(err))
 		return response.BadRequest("Invalid room")
 	}
 
-	// Set contract price from room category if not specified
 	if createContract.Price == 0 {
 		createContract.Price = room.RoomCategory.Price
 	}
@@ -57,7 +51,6 @@ func (uc *contractUseCase) CreateContract(ctx context.Context, createContract *e
 	return response.Created(createContract)
 }
 
-// GetContractByID retrieves a contract by ID
 func (uc *contractUseCase) GetContractByID(ctx context.Context, id uint) response.StatusResponse {
 	contract, err := uc.repos.Contract().GetByID(ctx, id)
 	if err != nil {
@@ -68,7 +61,6 @@ func (uc *contractUseCase) GetContractByID(ctx context.Context, id uint) respons
 	return response.Success(contract, 1)
 }
 
-// GetContractByUserID retrieves a contract by user ID
 func (uc *contractUseCase) GetContractByUserID(ctx context.Context, userID uint) response.StatusResponse {
 	contract, err := uc.repos.Contract().GetByUserID(ctx, userID)
 	if err != nil {
@@ -79,7 +71,6 @@ func (uc *contractUseCase) GetContractByUserID(ctx context.Context, userID uint)
 	return response.Success(contract, 1)
 }
 
-// GetListContracts retrieves contracts based on filter
 func (uc *contractUseCase) GetListContracts(ctx context.Context, filter *entity.ContractFilter) response.StatusResponse {
 	contracts, total, err := uc.repos.Contract().List(ctx, filter)
 	if err != nil {
@@ -90,7 +81,6 @@ func (uc *contractUseCase) GetListContracts(ctx context.Context, filter *entity.
 	return response.Success(contracts, total)
 }
 
-// UpdateContract updates a contract
 func (uc *contractUseCase) UpdateContract(ctx context.Context, id uint, updateData *entity.UpdateContract) response.StatusResponse {
 	contract, err := uc.repos.Contract().GetByID(ctx, id)
 	if err != nil {
@@ -98,7 +88,6 @@ func (uc *contractUseCase) UpdateContract(ctx context.Context, id uint, updateDa
 		return response.NotFound(fmt.Sprintf("Contract with ID %d not found", id))
 	}
 
-	// Update contract fields
 	if updateData.Status != "" {
 		contract.Status = updateData.Status
 	}
@@ -123,7 +112,6 @@ func (uc *contractUseCase) UpdateContract(ctx context.Context, id uint, updateDa
 	return response.Success(contract, 1)
 }
 
-// DeleteContract deletes a contract
 func (uc *contractUseCase) DeleteContract(ctx context.Context, id uint) response.StatusResponse {
 	_, err := uc.repos.Contract().GetByID(ctx, id)
 	if err != nil {

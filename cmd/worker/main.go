@@ -82,19 +82,16 @@ func main() {
 
 	log := logger.NewLogger(cfg.LogLevel)
 
-	// Initialize database connection
 	db, err := database.NewPostgresDB(cfg.Database)
 	if err != nil {
 		log.Fatal("Failed to connect to database", err)
 	}
 
-	// Initialize Redis client
 	rdb, err := cache.NewRedisClient(cfg.Redis, log, ctx)
 	if err != nil {
 		log.Fatal("Failed to connect to Redis", err)
 	}
 
-	// Initialize repositories
 	repos := repository.NewRepositories(db, rdb)
 
 	redisAddr := fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port)

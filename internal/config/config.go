@@ -8,7 +8,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config holds all configuration for the application
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
@@ -19,19 +18,16 @@ type Config struct {
 	Client   ClientConfig
 }
 
-// ServerConfig holds all the server-related configuration
 type ServerConfig struct {
 	Port      string
 	Mode      string
 	SecretKey string
 }
 
-// Client holds all the client-related configuration
 type ClientConfig struct {
 	ClientDomain string
 }
 
-// DatabaseConfig holds all the database-related configuration
 type DatabaseConfig struct {
 	Host     string
 	Port     string
@@ -41,7 +37,6 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
-// RedisConfig holds all the Redis-related configuration
 type RedisConfig struct {
 	Host     string
 	Port     string
@@ -49,7 +44,6 @@ type RedisConfig struct {
 	DB       int
 }
 
-// JWTConfig holds all the JWT-related configuration
 type JWTConfig struct {
 	AccessSecret     string
 	RefreshSecret    string
@@ -64,22 +58,17 @@ type EmailConfig struct {
 	SMTP_ADDR         string
 }
 
-// LoadConfig loads the configuration from environment variables
 func LoadConfig() *Config {
-	// Load .env file if it exists
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using default values")
 	}
 
-	// Server config
 	serverPort := getEnv("SERVER_PORT", "8080")
 	serverMode := getEnv("SERVER_MODE", "debug")
 	serverSecretKey := getEnv("SERVER_SECRET_KEY", "your-secret-key")
 
-	// Client config
 	clientDomain := getEnv("CLIENT_DOMAIN", "http://localhost:3000")
 
-	// Database config
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "5432")
 	dbUser := getEnv("DB_USER", "postgres")
@@ -87,22 +76,18 @@ func LoadConfig() *Config {
 	dbName := getEnv("DB_NAME", "dormitory")
 	dbSSLMode := getEnv("DB_SSL_MODE", "disable")
 
-	// Redis config
 	redisHost := getEnv("REDIS_HOST", "localhost")
 	redisPort := getEnv("REDIS_PORT", "6379")
 	redisPassword := getEnv("REDIS_PASSWORD", "")
 	redisDB := getEnvAsInt("REDIS_DB", 0)
 
-	// JWT config
 	jwtAccessSecret := getEnv("JWT_ACCESS_SECRET", "your-secret-key")
 	jwtRefreshSecret := getEnv("JWT_REFRESH_SECRET", "your-secret-key")
 	jwtAccessExpiresIn := getEnvAsInt("JWT_ACCESS_EXPIRES_IN", 3600)
 	jwtRefreshExpiresIn := getEnvAsInt("JWT_REFRESH_EXPIRES_IN", 604800)
 
-	// Log level
 	logLevel := getEnv("LOG_LEVEL", "info")
 
-	// Email config
 	fromEmail := getEnv("FROM_EMAIL", "example@gmail.com")
 	fromEmailPassword := getEnv("FROM_EMAIL_PASSWORD", "12345678")
 	fromEmailSMTP := getEnv("FROM_EMAIL_SMTP", "smtp.gmail.com")
@@ -147,8 +132,6 @@ func LoadConfig() *Config {
 	}
 }
 
-// getEnv retrieves the value of the environment variable named by the key
-// or returns the fallback value if the variable is not set
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
