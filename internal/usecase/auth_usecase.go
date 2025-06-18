@@ -26,7 +26,7 @@ import (
 
 // Claims is the custom JWT claims
 type Claims struct {
-	UserID       uint   `json:"user_id"`
+	UserID       uint64 `json:"user_id"`
 	Email        string `json:"email"`
 	Role         string `json:"role"`
 	TokenVersion string `json:"token_version"`
@@ -106,7 +106,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 }
 
 // Me returns the current user
-func (uc *authUseCase) Me(ctx context.Context, userID uint) response.StatusResponse {
+func (uc *authUseCase) Me(ctx context.Context, userID uint64) response.StatusResponse {
 	// Get user from cache
 	user := &entity.User{
 		Base: entity.Base{ID: userID},
@@ -246,7 +246,7 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 }
 
 // Logout invalidates tokens
-func (uc *authUseCase) Logout(ctx context.Context, userID uint) response.StatusResponse {
+func (uc *authUseCase) Logout(ctx context.Context, userID uint64) response.StatusResponse {
 	if err := uc.repos.Auth().InvalidateToken(ctx, entity.AccessToken, userID); err != nil {
 		uc.logger.Error("Failed to invalidate token", zap.Error(err))
 		return response.InternalServerError("Failed to logout")
@@ -266,7 +266,7 @@ func (uc *authUseCase) Logout(ctx context.Context, userID uint) response.StatusR
 }
 
 // GenerateTokens generates access and refresh tokens
-func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint) (string, string, error) {
+func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint64) (string, string, error) {
 	// Get user
 	user := &entity.User{
 		Base: entity.Base{ID: userID},

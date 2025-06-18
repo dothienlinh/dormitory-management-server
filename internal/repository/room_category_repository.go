@@ -39,7 +39,7 @@ func (r *roomCategoryRepository) Create(ctx context.Context, createRoomCategory 
 }
 
 // GetByID retrieves a room category by ID
-func (r *roomCategoryRepository) GetByID(ctx context.Context, id uint) (*entity.RoomCategory, error) {
+func (r *roomCategoryRepository) GetByID(ctx context.Context, id uint64) (*entity.RoomCategory, error) {
 	var category entity.RoomCategory
 	if err := r.db.WithContext(ctx).Table(category.TableName()).Preload("Rooms").First(&category, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -84,7 +84,7 @@ func (r *roomCategoryRepository) Update(ctx context.Context, category *entity.Ro
 }
 
 // Delete deletes a room category
-func (r *roomCategoryRepository) Delete(ctx context.Context, id uint) error {
+func (r *roomCategoryRepository) Delete(ctx context.Context, id uint64) error {
 	if err := r.db.WithContext(ctx).Table(entity.RoomCategory{}.TableName()).Delete(&entity.RoomCategory{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete room category: %w", err)
 	}

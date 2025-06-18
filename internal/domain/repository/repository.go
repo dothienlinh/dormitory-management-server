@@ -10,4 +10,5 @@ type Repositories interface {
 	Dashboard() DashboardRepository
 	Email() EmailRepository
 	OtpCode() OtpCodeRepository
+	Facilities() FacilitiesRepository
 }

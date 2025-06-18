@@ -8,10 +8,10 @@ import (
 // AuthRepository defines the interface for authentication operations
 type AuthRepository interface {
 	// CheckTokenVersion checks the token version in the repository
-	CheckTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint) (string, error)
+	CheckTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint64) (string, error)
 
 	// SetTokenVersion sets the token version in the repository
-	SetCacheTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint, tokenVersion string, expiresIn int) error
+	SetCacheTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint64, tokenVersion string, expiresIn int) error
 
 	// SetUserCache sets user data in the cache
 	SetUserCache(ctx context.Context, user *entity.User, expiresIn int) error
@@ -20,10 +20,10 @@ type AuthRepository interface {
 	GetUserCache(ctx context.Context, user *entity.User) error
 
 	// DeleteUserCache deletes user data from the cache
-	DeleteUserCache(ctx context.Context, userID uint) error
+	DeleteUserCache(ctx context.Context, userID uint64) error
 
 	// InvalidateToken invalidates a token in the repository
-	InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint) error
+	InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint64) error
 
 	// Register registers a new user
 	Register(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error

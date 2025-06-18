@@ -14,6 +14,7 @@ type Handlers struct {
 	Auth         *AuthHandler
 	Dashboard    *DashboardHandler
 	Email        *EmailHandler
+	Facility     *FacilityHandler
 }
 
 // NewHandlers creates a new Handlers instance
@@ -26,5 +27,6 @@ func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
 		Auth:         NewAuthHandler(useCases, logger),
 		Dashboard:    NewDashboardHandler(useCases, logger),
 		Email:        NewEmailHandler(useCases, logger),
+		Facility:     NewFacilityHandler(useCases, logger),
 	}
 }

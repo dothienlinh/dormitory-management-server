@@ -29,14 +29,14 @@ func NewAuthRepository(db *gorm.DB, redisClient *cache.RedisClient) repository.A
 }
 
 // CheckTokenVersion checks the token version in Redis
-func (r *authRepository) CheckTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint) (string, error) {
+func (r *authRepository) CheckTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint64) (string, error) {
 	key := fmt.Sprintf("%s:%d", tokenType.String(), userID)
 	return r.redis.Get(ctx, key)
 
 }
 
 // SetTokenVersion sets the token version in Redis
-func (r *authRepository) SetCacheTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint, tokenVersion string, expiresIn int) error {
+func (r *authRepository) SetCacheTokenVersion(ctx context.Context, tokenType entity.TokenType, userID uint64, tokenVersion string, expiresIn int) error {
 	key := fmt.Sprintf("%s:%d", tokenType.String(), userID)
 	return r.redis.Set(ctx, key, tokenVersion, expiresIn)
 }
@@ -66,13 +66,13 @@ func (r *authRepository) GetUserCache(ctx context.Context, user *entity.User) er
 }
 
 // DeleteUserCache deletes user data from Redis
-func (r *authRepository) DeleteUserCache(ctx context.Context, userID uint) error {
+func (r *authRepository) DeleteUserCache(ctx context.Context, userID uint64) error {
 	key := fmt.Sprintf("user:%d", userID)
 	return r.redis.Del(ctx, key)
 }
 
 // InvalidateToken invalidates a token in Redis
-func (r *authRepository) InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint) error {
+func (r *authRepository) InvalidateToken(ctx context.Context, tokenType entity.TokenType, userID uint64) error {
 	key := fmt.Sprintf("%s:%d", tokenType.String(), userID)
 	return r.redis.Del(ctx, key)
 }

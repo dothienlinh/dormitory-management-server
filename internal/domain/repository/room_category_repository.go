@@ -10,7 +10,7 @@ type RoomCategoryRepository interface {
 	Create(ctx context.Context, category *entity.CreateRoomCategory) error
 
 	// GetByID retrieves a room category by ID
-	GetByID(ctx context.Context, id uint) (*entity.RoomCategory, error)
+	GetByID(ctx context.Context, id uint64) (*entity.RoomCategory, error)
 
 	// List retrieves room categories based on filter
 	List(ctx context.Context, filter *entity.RoomCategoryFilter) ([]entity.RoomCategory, int64, error)
@@ -19,5 +19,5 @@ type RoomCategoryRepository interface {
 	Update(ctx context.Context, category *entity.RoomCategory) error
 
 	// Delete deletes a room category by ID
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, id uint64) error
 }

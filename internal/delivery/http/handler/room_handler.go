@@ -57,7 +57,7 @@ func (h *RoomHandler) GetRoomByID() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Room().GetRoomByID(c, uint(id))
+		resp = h.useCases.Room().GetRoomByID(c, id)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -102,7 +102,7 @@ func (h *RoomHandler) UpdateRoom() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Room().UpdateRoom(c, uint(id), &room)
+		resp = h.useCases.Room().UpdateRoom(c, id, &room)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -121,7 +121,7 @@ func (h *RoomHandler) DeleteRoom() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Room().DeleteRoom(c, uint(id))
+		resp = h.useCases.Room().DeleteRoom(c, id)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -172,7 +172,7 @@ func (h *RoomCategoryHandler) GetRoomCategoryByID() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.RoomCategory().GetRoomCategoryByID(c, uint(id))
+		resp = h.useCases.RoomCategory().GetRoomCategoryByID(c, id)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -217,7 +217,7 @@ func (h *RoomCategoryHandler) UpdateRoomCategory() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.RoomCategory().UpdateRoomCategory(c, uint(id), &category)
+		resp = h.useCases.RoomCategory().UpdateRoomCategory(c, id, &category)
 		c.JSON(resp.Status, resp.Response)
 	}
 }
@@ -236,7 +236,7 @@ func (h *RoomCategoryHandler) DeleteRoomCategory() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.RoomCategory().DeleteRoomCategory(c, uint(id))
+		resp = h.useCases.RoomCategory().DeleteRoomCategory(c, id)
 		c.JSON(resp.Status, resp.Response)
 	}
 }

@@ -87,7 +87,7 @@ func (r *userRepository) Update(ctx context.Context, user *entity.User) error {
 }
 
 // Delete deletes a user
-func (r *userRepository) Delete(ctx context.Context, id uint) error {
+func (r *userRepository) Delete(ctx context.Context, id uint64) error {
 	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Delete(&entity.User{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}

@@ -33,7 +33,7 @@ func (r *OtpCodeRepository) CreateOtpCode(ctx context.Context, payload *entity.O
 	return r.db.WithContext(ctx).Table(payload.TableName()).Create(payload).Error
 }
 
-func (r *OtpCodeRepository) UseOtpCode(ctx context.Context, otpCodeId uint) error {
+func (r *OtpCodeRepository) UseOtpCode(ctx context.Context, otpCodeId uint64) error {
 	useOtpCode := entity.UseOtpCode{IsUsed: true, VerifiedAt: time.Now().Format(time.RFC3339)}
 	return r.db.WithContext(ctx).Table(entity.OtpCode{}.TableName()).Where("id = ?", otpCodeId).Updates(useOtpCode).Error
 }

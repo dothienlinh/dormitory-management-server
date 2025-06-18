@@ -12,7 +12,7 @@ type BaseModel interface {
 
 // Base model for all entities
 type Base struct {
-	ID        uint           `json:"id"`
+	ID        uint64         `json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-"`

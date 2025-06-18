@@ -34,8 +34,8 @@ func (Contract) TableName() string {
 
 // CreateContract is the data transfer object for creating a contract
 type CreateContract struct {
-	UserID      uint           `json:"user_id" binding:"required,numeric"`
-	RoomID      uint           `json:"room_id" binding:"required,numeric"`
+	UserID      uint64         `json:"user_id" binding:"required,numeric"`
+	RoomID      uint64         `json:"room_id" binding:"required,numeric"`
 	StartDate   time.Time      `json:"start_date" binding:"required,datetime"`
 	EndDate     time.Time      `json:"end_date" binding:"required,datetime"`
 	Price       float64        `json:"price" binding:"required,numeric"`
@@ -54,10 +54,10 @@ type UpdateContract struct {
 
 // ContractDTO is a data transfer object for Contract entity
 type ContractDTO struct {
-	ID          uint           `json:"id"`
-	UserID      uint           `json:"user_id"`
+	ID          uint64         `json:"id"`
+	UserID      uint64         `json:"user_id"`
 	User        User           `json:"user,omitempty"`
-	RoomID      uint           `json:"room_id"`
+	RoomID      uint64         `json:"room_id"`
 	Room        Room           `json:"room,omitempty"`
 	StartDate   time.Time      `json:"start_date"`
 	EndDate     time.Time      `json:"end_date"`
@@ -71,8 +71,8 @@ type ContractDTO struct {
 // ContractFilter for filtering contracts
 type ContractFilter struct {
 	Status  ContractStatus `form:"status" binding:"omitempty,oneof=active inactive cancelled"`
-	UserID  uint           `form:"user_id"`
-	RoomID  uint           `form:"room_id"`
+	UserID  uint64         `form:"user_id"`
+	RoomID  uint64         `form:"room_id"`
 	Keyword string         `form:"keyword"`
 	Pagination
 }
