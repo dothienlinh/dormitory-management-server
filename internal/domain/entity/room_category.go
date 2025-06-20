@@ -9,7 +9,7 @@ type RoomCategory struct {
 	Capacity    int     `json:"capacity"`
 	Price       float64 `json:"price"`
 	Acreage     int     `json:"acreage"`
-	Rooms       []Room  `json:"rooms,omitempty"`
+	Rooms       []Room  `json:"rooms"`
 }
 
 func (RoomCategory) TableName() string {
@@ -96,8 +96,8 @@ type RoomDTO struct {
 	Description    string       `json:"description"`
 	Status         RoomStatus   `json:"status"`
 	RoomCategoryID uint         `json:"room_category_id"`
-	RoomCategory   RoomCategory `json:"room_category,omitempty"`
-	Users          []User       `json:"users,omitempty"`
+	RoomCategory   RoomCategory `json:"room_category"`
+	Users          []User       `json:"users"`
 }
 
 type RoomCategoryDTO struct {
@@ -106,5 +106,5 @@ type RoomCategoryDTO struct {
 	Description string  `json:"description"`
 	Capacity    int     `json:"capacity"`
 	Price       float64 `json:"price"`
-	Rooms       []Room  `json:"rooms,omitempty"`
+	Rooms       []Room  `json:"rooms"`
 }

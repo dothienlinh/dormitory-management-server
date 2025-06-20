@@ -65,11 +65,8 @@ func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *enti
 		return response.NotFound(fmt.Sprintf("Room with ID %d not found", id))
 	}
 
-	if roomData.Name != "" {
-		room.Name = roomData.Name
-	}
-	if roomData.Description != "" {
-		room.Description = roomData.Description
+	if roomData.RoomNumber != "" {
+		room.RoomNumber = roomData.RoomNumber
 	}
 	if roomData.Status != "" {
 		room.Status = roomData.Status
@@ -82,7 +79,7 @@ func (uc *roomUseCase) UpdateRoom(ctx context.Context, id uint64, roomData *enti
 		room.RoomCategoryID = roomData.RoomCategoryID
 	}
 
-	if err := uc.repos.Room().Update(ctx, room); err != nil {
+	if err := uc.repos.Room().Update(ctx, room, roomData.AmenityIDs); err != nil {
 		uc.logger.Error("Failed to update room", zap.Error(err))
 		return response.InternalServerError("Failed to update room")
 	}
@@ -103,7 +100,7 @@ func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint64) response.Statu
 
 	if err := uc.repos.Room().Delete(ctx, id); err != nil {
 		uc.logger.Error("Failed to delete room", zap.Error(err))
-		return response.InternalServerError("Failed to delete room")
+		return response.InternalServerError(err.Error())
 	}
 
 	return response.Success("Room deleted successfully", 0)

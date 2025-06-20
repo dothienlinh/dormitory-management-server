@@ -6,13 +6,13 @@ import (
 )
 
 type AmenitiesRepository interface {
-	Create(ctx context.Context, amenities *entity.Amenities) error
+	Create(ctx context.Context, amenities *entity.Amenity) error
 
-	List(ctx context.Context, amenities *[]entity.Amenities) error
+	List(ctx context.Context, amenities *[]entity.Amenity) error
 
-	Detail(ctx context.Context, amenities *entity.Amenities) error
+	Detail(ctx context.Context, amenities *entity.Amenity) error
 
-	Update(ctx context.Context, amenities *entity.Amenities) error
+	Update(ctx context.Context, amenities *entity.Amenity) error
 
-	Delete(ctx context.Context, amenities *entity.Amenities) error
+	Delete(ctx context.Context, amenities *entity.Amenity) error
 }

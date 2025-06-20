@@ -164,8 +164,8 @@ type UserDTO struct {
 	Phone       string     `json:"phone"`
 	Birthday    *time.Time `json:"birthday"`
 	Avatar      *string    `json:"avatar"`
-	Room        *Room      `json:"room,omitempty"`
-	Contract    *Contract  `json:"contract,omitempty"`
+	Room        *Room      `json:"room"`
+	Contract    *Contract  `json:"contract"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 }

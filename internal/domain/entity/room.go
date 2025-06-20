@@ -2,26 +2,36 @@ package entity
 
 type Room struct {
 	Base
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
+	RoomNumber         string               `json:"room_number"`
+	Status             RoomStatus           `json:"status"`
+	RoomCategoryID     uint64               `json:"room_category_id"`
+	RoomCategory       RoomCategory         `json:"room_category"`
+	Users              []User               `json:"users"`
+	RoomAmenities      []RoomAmenities      `json:"room_amenities"`
+	MaintenanceHistory []MaintenanceHistory `json:"maintenance_histories"`
+}
+
+type ListRooms struct {
+	Base
+	RoomNumber     string       `json:"room_number"`
 	Status         RoomStatus   `json:"status"`
 	RoomCategoryID uint64       `json:"room_category_id"`
 	RoomCategory   RoomCategory `json:"room_category"`
-	Users          []User       `json:"users,omitempty"`
+	UserCount      int64        `json:"user_count"`
 }
 
 type CreateRoom struct {
-	Name           string     `json:"name" binding:"required"`
-	Description    string     `json:"description" binding:"omitempty"`
+	RoomNumber     string     `json:"room_number" binding:"required"`
 	Status         RoomStatus `json:"status" binding:"required,oneof=available unavailable maintenance"`
 	RoomCategoryID uint64     `json:"room_category_id" binding:"required,numeric"`
+	AmenityIDs     []uint64   `json:"amenity_ids" binding:"omitempty,dive,numeric"`
 }
 
 type UpdateRoom struct {
-	Name           string     `json:"name" binding:"omitempty"`
-	Description    string     `json:"description" binding:"omitempty"`
+	RoomNumber     string     `json:"room_number" binding:"omitempty"`
 	Status         RoomStatus `json:"status" binding:"omitempty,oneof=available unavailable maintenance"`
 	RoomCategoryID uint64     `json:"room_category_id" binding:"omitempty,numeric"`
+	AmenityIDs     []uint64   `json:"amenity_ids" binding:"omitempty,dive,numeric"`
 }
 
 func (Room) TableName() string {

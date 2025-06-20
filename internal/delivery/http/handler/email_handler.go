@@ -28,8 +28,7 @@ func (h *EmailHandler) SendEmail() gin.HandlerFunc {
 		var payload entity.SendCodeEmail
 		if err := ctx.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			ctx.JSON(resp.Status, resp.Response)
+			ctx.Error(err)
 			return
 		}
 
@@ -52,8 +51,7 @@ func (h *EmailHandler) VerifyCode() gin.HandlerFunc {
 		var payload entity.VerifyCodeEmail
 		if err := ctx.ShouldBindJSON(&payload); err != nil {
 			h.logger.Error("Failed to bind JSON", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			ctx.JSON(resp.Status, resp.Response)
+			ctx.Error(err)
 			return
 		}
 

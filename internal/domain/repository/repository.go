@@ -10,4 +10,5 @@ type Repositories interface {
 	Email() EmailRepository
 	OtpCode() OtpCodeRepository
 	Amenities() AmenitiesRepository
+	MaintenanceHistory() MaintenanceHistoryRepository
 }

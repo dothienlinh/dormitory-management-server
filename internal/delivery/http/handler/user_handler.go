@@ -50,8 +50,7 @@ func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 		var filter entity.UserFilter
 		if err := c.ShouldBindQuery(&filter); err != nil {
 			h.logger.Error("Failed to bind query parameters", zap.Error(err))
-			resp = response.BadRequest(err.Error())
-			c.JSON(resp.Status, resp.Response)
+			c.Error(err)
 			return
 		}
 
