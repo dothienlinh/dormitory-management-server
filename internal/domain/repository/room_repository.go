@@ -10,9 +10,9 @@ type RoomRepository interface {
 
 	GetByID(ctx context.Context, id uint64) (*entity.Room, error)
 
-	List(ctx context.Context, filter *entity.RoomFilter) ([]entity.Room, int64, error)
+	List(ctx context.Context, filter *entity.RoomFilter) ([]entity.ListRooms, int64, error)
 
-	Update(ctx context.Context, room *entity.Room) error
+	Update(ctx context.Context, room *entity.Room, amenityIDs []uint64) error
 
 	Delete(ctx context.Context, id uint64) error
 }

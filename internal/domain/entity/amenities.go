@@ -1,11 +1,12 @@
 package entity
 
-type Amenities struct {
+type Amenity struct {
 	Base
-	Name string `json:"name"`
+	Name          string          `json:"name"`
+	RoomAmenities []RoomAmenities `json:"room_amenities"`
 }
 
-func (Amenities) TableName() string {
+func (Amenity) TableName() string {
 	return "amenities"
 }
 

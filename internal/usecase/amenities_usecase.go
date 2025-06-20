@@ -27,7 +27,7 @@ func NewAmenitiesUseCase(repos repository.Repositories, logger logger.Logger) *a
 func (uc *amenitiesUseCase) Create(ctx context.Context, payload *entity.CreateAmenity) response.StatusResponse {
 	uc.logger.Info("Create amenity")
 
-	amenity := &entity.Amenities{
+	amenity := &entity.Amenity{
 		Name: payload.Name,
 	}
 
@@ -41,7 +41,7 @@ func (uc *amenitiesUseCase) Create(ctx context.Context, payload *entity.CreateAm
 
 func (uc *amenitiesUseCase) List(ctx context.Context) response.StatusResponse {
 	uc.logger.Info("Get list amenities")
-	amenities := []entity.Amenities{}
+	amenities := []entity.Amenity{}
 
 	if err := uc.repos.Amenities().List(ctx, &amenities); err != nil {
 		uc.logger.Error("Failed to get list amenities", zap.Error(err))
@@ -52,7 +52,7 @@ func (uc *amenitiesUseCase) List(ctx context.Context) response.StatusResponse {
 }
 
 func (uc *amenitiesUseCase) Update(ctx context.Context, payload *entity.UpdateAmenity, id uint64) response.StatusResponse {
-	amenities := &entity.Amenities{
+	amenities := &entity.Amenity{
 		Base: entity.Base{ID: id},
 	}
 
@@ -75,7 +75,7 @@ func (uc *amenitiesUseCase) Update(ctx context.Context, payload *entity.UpdateAm
 }
 
 func (uc *amenitiesUseCase) Delete(ctx context.Context, id uint64) response.StatusResponse {
-	amenities := &entity.Amenities{
+	amenities := &entity.Amenity{
 		Base: entity.Base{ID: id},
 	}
 
@@ -85,6 +85,10 @@ func (uc *amenitiesUseCase) Delete(ctx context.Context, id uint64) response.Stat
 		}
 		uc.logger.Error("Failed to get detail amenity", zap.Error(err))
 		response.InternalServerError("Failed to get detail amenity")
+	}
+
+	if len(amenities.RoomAmenities) > 0 {
+		return response.BadRequest("Cannot delete amenity with associated room amenities")
 	}
 
 	if err := uc.repos.Amenities().Delete(ctx, amenities); err != nil {

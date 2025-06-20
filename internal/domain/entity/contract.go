@@ -51,9 +51,9 @@ type UpdateContract struct {
 type ContractDTO struct {
 	ID          uint64         `json:"id"`
 	UserID      uint64         `json:"user_id"`
-	User        User           `json:"user,omitempty"`
+	User        User           `json:"user"`
 	RoomID      uint64         `json:"room_id"`
-	Room        Room           `json:"room,omitempty"`
+	Room        Room           `json:"room"`
 	StartDate   time.Time      `json:"start_date"`
 	EndDate     time.Time      `json:"end_date"`
 	Price       float64        `json:"price"`

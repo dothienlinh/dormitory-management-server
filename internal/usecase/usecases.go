@@ -9,14 +9,15 @@ import (
 )
 
 type useCases struct {
-	user         usecase.UserUseCase
-	room         usecase.RoomUseCase
-	roomCategory usecase.RoomCategoryUseCase
-	contract     usecase.ContractUseCase
-	auth         usecase.AuthUseCase
-	dashboard    usecase.DashboardUseCase
-	email        usecase.EmailUseCase
-	amenities    usecase.AmenitiesUseCase
+	user               usecase.UserUseCase
+	room               usecase.RoomUseCase
+	roomCategory       usecase.RoomCategoryUseCase
+	contract           usecase.ContractUseCase
+	auth               usecase.AuthUseCase
+	dashboard          usecase.DashboardUseCase
+	email              usecase.EmailUseCase
+	amenities          usecase.AmenitiesUseCase
+	maintenanceHistory usecase.MaintenanceHistoryUsecase
 }
 
 func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.UseCases {
@@ -30,6 +31,7 @@ func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClien
 	useCases.dashboard = NewDashboardUseCase(repos, logger)
 	useCases.email = NewEmailUseCase(repos, logger, asynqClient)
 	useCases.amenities = NewAmenitiesUseCase(repos, logger)
+	useCases.maintenanceHistory = NewMaintenanceHistoryUsecase(repos, logger)
 
 	return useCases
 }
@@ -64,4 +66,8 @@ func (uc *useCases) Email() usecase.EmailUseCase {
 
 func (uc *useCases) Amenities() usecase.AmenitiesUseCase {
 	return uc.amenities
+}
+
+func (uc *useCases) MaintenanceHistory() usecase.MaintenanceHistoryUsecase {
+	return uc.maintenanceHistory
 }

@@ -8,15 +8,16 @@ import (
 )
 
 type repositories struct {
-	user         repository.UserRepository
-	room         repository.RoomRepository
-	roomCategory repository.RoomCategoryRepository
-	contract     repository.ContractRepository
-	auth         repository.AuthRepository
-	dashboard    repository.DashboardRepository
-	email        repository.EmailRepository
-	otpCode      repository.OtpCodeRepository
-	amenities    repository.AmenitiesRepository
+	user               repository.UserRepository
+	room               repository.RoomRepository
+	roomCategory       repository.RoomCategoryRepository
+	contract           repository.ContractRepository
+	auth               repository.AuthRepository
+	dashboard          repository.DashboardRepository
+	email              repository.EmailRepository
+	otpCode            repository.OtpCodeRepository
+	amenities          repository.AmenitiesRepository
+	maintenanceHistory repository.MaintenanceHistoryRepository
 }
 
 func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Repositories {
@@ -31,6 +32,7 @@ func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Rep
 	repos.email = NewEmailRepository(db)
 	repos.otpCode = NewOtpCodeRepository(db)
 	repos.amenities = NewAmenitiesRepository(db)
+	repos.maintenanceHistory = NewMaintenanceHistoryRepository(db)
 
 	return repos
 }
@@ -69,4 +71,8 @@ func (r *repositories) Email() repository.EmailRepository {
 
 func (r *repositories) Amenities() repository.AmenitiesRepository {
 	return r.amenities
+}
+
+func (r *repositories) MaintenanceHistory() repository.MaintenanceHistoryRepository {
+	return r.maintenanceHistory
 }

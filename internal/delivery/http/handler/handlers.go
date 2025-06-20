@@ -6,25 +6,27 @@ import (
 )
 
 type Handlers struct {
-	User         *UserHandler
-	Room         *RoomHandler
-	RoomCategory *RoomCategoryHandler
-	Contract     *ContractHandler
-	Auth         *AuthHandler
-	Dashboard    *DashboardHandler
-	Email        *EmailHandler
-	Amenity      *AmenityHandler
+	User               *UserHandler
+	Room               *RoomHandler
+	RoomCategory       *RoomCategoryHandler
+	Contract           *ContractHandler
+	Auth               *AuthHandler
+	Dashboard          *DashboardHandler
+	Email              *EmailHandler
+	Amenity            *AmenityHandler
+	MaintenanceHistory *MaintenanceHistoryHandler
 }
 
 func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
 	return &Handlers{
-		User:         NewUserHandler(useCases, logger),
-		Room:         NewRoomHandler(useCases, logger),
-		RoomCategory: NewRoomCategoryHandler(useCases, logger),
-		Contract:     NewContractHandler(useCases, logger),
-		Auth:         NewAuthHandler(useCases, logger),
-		Dashboard:    NewDashboardHandler(useCases, logger),
-		Email:        NewEmailHandler(useCases, logger),
-		Amenity:      NewAmenityHandler(useCases, logger),
+		User:               NewUserHandler(useCases, logger),
+		Room:               NewRoomHandler(useCases, logger),
+		RoomCategory:       NewRoomCategoryHandler(useCases, logger),
+		Contract:           NewContractHandler(useCases, logger),
+		Auth:               NewAuthHandler(useCases, logger),
+		Dashboard:          NewDashboardHandler(useCases, logger),
+		Email:              NewEmailHandler(useCases, logger),
+		Amenity:            NewAmenityHandler(useCases, logger),
+		MaintenanceHistory: NewMaintenanceHistoryHandler(useCases, logger),
 	}
 }

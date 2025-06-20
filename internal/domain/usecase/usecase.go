@@ -9,4 +9,5 @@ type UseCases interface {
 	Dashboard() DashboardUseCase
 	Email() EmailUseCase
 	Amenities() AmenitiesUseCase
+	MaintenanceHistory() MaintenanceHistoryUsecase
 }
