@@ -113,8 +113,8 @@ type UserFilter struct {
 }
 
 func (f UserFilter) Build() (string, []interface{}) {
-	conditions := []string{"role = ?"}
-	values := []interface{}{UserRoleStudent}
+	conditions := []string{"role = ?", "is_verify = ?"}
+	values := []interface{}{UserRoleStudent, true}
 
 	if f.Status != "" {
 		conditions = append(conditions, "status = ?")

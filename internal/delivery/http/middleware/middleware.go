@@ -289,6 +289,12 @@ func (m *Middleware) formatValidationError(validationErrors validator.Validation
 			message = field + " must contain only letters"
 		case "alphanum":
 			message = field + " must contain only letters and numbers"
+		case "oneof":
+			message = field + " must be one of the following values: " + err.Param()
+		case "validdate":
+			message = field + " must be a valid date"
+		case "gtefield":
+			message = field + " must be greater than or equal to " + err.Param()
 		default:
 			message = field + " is invalid"
 		}

@@ -35,6 +35,18 @@ func (r *roomRepository) Create(ctx context.Context, payload *entity.CreateRoom)
 
 		if len(payload.AmenityIDs) > 0 {
 			uniqueAmenityIDs := helper.RemoveDuplicateUint64(payload.AmenityIDs)
+			var existingCount int64
+			if err := tx.WithContext(ctx).
+				Table(entity.RoomAmenities{}.TableName()).
+				Where("room_id = ? AND amenity_id IN ?", roomEntity.ID, uniqueAmenityIDs).
+				Count(&existingCount).Error; err != nil {
+				return fmt.Errorf("failed to check existing room amenities: %w", err)
+			}
+
+			if existingCount > 0 {
+				return fmt.Errorf("some amenities are already associated with this room")
+			}
+
 			if err := r.createRoomAmenities(ctx, tx, roomEntity.ID, uniqueAmenityIDs); err != nil {
 				return err
 			}
@@ -45,18 +57,6 @@ func (r *roomRepository) Create(ctx context.Context, payload *entity.CreateRoom)
 }
 
 func (r *roomRepository) createRoomAmenities(ctx context.Context, tx *gorm.DB, roomID uint64, amenityIDs []uint64) error {
-	var existingCount int64
-	if err := tx.WithContext(ctx).
-		Table(entity.RoomAmenities{}.TableName()).
-		Where("room_id = ? AND amenity_id IN ?", roomID, amenityIDs).
-		Count(&existingCount).Error; err != nil {
-		return fmt.Errorf("failed to check existing room amenities: %w", err)
-	}
-
-	if existingCount > 0 {
-		return fmt.Errorf("some amenities are already associated with this room")
-	}
-
 	var amenityCount int64
 	if err := tx.WithContext(ctx).
 		Table(entity.Amenity{}.TableName()).
@@ -138,7 +138,7 @@ func (r *roomRepository) Update(ctx context.Context, room *entity.Room, amenityI
 			RoomID: room.ID,
 		}
 
-		if err := tx.WithContext(ctx).Table(roomAmenities.TableName()).Where("room_id = ?", room.ID).Delete(&roomAmenities).Error; err != nil {
+		if err := tx.WithContext(ctx).Table(roomAmenities.TableName()).Unscoped().Where("room_id = ?", room.ID).Delete(&roomAmenities).Error; err != nil {
 			return fmt.Errorf("failed to delete existing room amenities: %w", err)
 		}
 
@@ -158,4 +158,8 @@ func (r *roomRepository) Delete(ctx context.Context, id uint64) error {
 		return fmt.Errorf("failed to delete room: %w", err)
 	}
 	return nil
+}
+
+func (r *roomRepository) AmountStudentsInRoom(ctx context.Context, roomID uint64, amount *int64) error {
+	return r.db.WithContext(ctx).Table(entity.User{}.TableName()).Where("room_id = ?", roomID).Count(amount).Error
 }

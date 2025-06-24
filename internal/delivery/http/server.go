@@ -5,6 +5,7 @@ import (
 	"dormitory_management/internal/delivery/http/handler"
 	"dormitory_management/internal/delivery/http/middleware"
 	"dormitory_management/internal/delivery/http/router"
+	"dormitory_management/pkg/validator"
 	"fmt"
 	"log"
 	"time"
@@ -22,6 +23,8 @@ func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Mi
 	gin.SetMode(cfg.Server.Mode)
 
 	ginRouter := gin.New()
+
+	validator.CustomValidators()
 
 	ginRouter.Use(gin.CustomRecovery(mw.CustomRecovery()))
 	ginRouter.Use(mw.LoggerMiddleware())

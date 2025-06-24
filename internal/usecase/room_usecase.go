@@ -105,8 +105,3 @@ func (uc *roomUseCase) DeleteRoom(ctx context.Context, id uint64) response.Statu
 
 	return response.Success("Room deleted successfully", 0)
 }
-
-type roomCategoryUseCase struct {
-	repos  repository.Repositories
-	logger logger.Logger
-}
