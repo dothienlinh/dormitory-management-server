@@ -20,7 +20,7 @@ func NewContractRepository(db *gorm.DB) repository.ContractRepository {
 	}
 }
 
-func (r *contractRepository) Create(ctx context.Context, createContract *entity.CreateContract) error {
+func (r *contractRepository) Create(ctx context.Context, createContract *entity.Contract) error {
 	if err := r.db.WithContext(ctx).Table(entity.Contract{}.TableName()).Create(createContract).Error; err != nil {
 		return fmt.Errorf("failed to create contract: %w", err)
 	}

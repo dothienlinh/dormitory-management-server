@@ -15,4 +15,6 @@ type RoomRepository interface {
 	Update(ctx context.Context, room *entity.Room, amenityIDs []uint64) error
 
 	Delete(ctx context.Context, id uint64) error
+
+	AmountStudentsInRoom(ctx context.Context, roomID uint64, amount *int64) error
 }

@@ -2,13 +2,16 @@ package usecase
 
 import (
 	"context"
+	"dormitory_management/internal/common"
 	"dormitory_management/internal/domain/entity"
 	"dormitory_management/internal/domain/repository"
 	"dormitory_management/internal/domain/response"
 	"dormitory_management/internal/domain/usecase"
 	"dormitory_management/pkg/logger"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -38,12 +41,49 @@ func (uc *contractUseCase) CreateContract(ctx context.Context, createContract *e
 		uc.logger.Error("Failed to validate room", zap.Error(err))
 		return response.BadRequest("Invalid room")
 	}
-
-	if createContract.Price == 0 {
-		createContract.Price = room.RoomCategory.Price
+	var amountStudents int64
+	if err := uc.repos.Room().AmountStudentsInRoom(ctx, room.ID, &amountStudents); err != nil {
+		uc.logger.Error("Failed to check room capacity", zap.Error(err))
+		return response.BadRequest("Room capacity exceeded")
 	}
 
-	if err := uc.repos.Contract().Create(ctx, createContract); err != nil {
+	if amountStudents >= int64(room.RoomCategory.Capacity) {
+		uc.logger.Error("Room capacity exceeded", zap.Int64("current", amountStudents), zap.Int("capacity", room.RoomCategory.Capacity))
+		return response.BadRequest("Room capacity exceeded")
+	}
+
+	startDate, err := common.ParsedTime(createContract.StartDate)
+	if err != nil {
+		uc.logger.Error("Invalid start date format", zap.Error(err))
+		return response.InternalServerError("Invalid start date format")
+	}
+
+	endDate, err := common.ParsedTime(createContract.EndDate)
+	if err != nil {
+		uc.logger.Error("Invalid start date format", zap.Error(err))
+		return response.InternalServerError("Invalid start date format")
+	}
+
+	contract := entity.Contract{
+		UserID:      createContract.UserID,
+		RoomID:      createContract.RoomID,
+		StartDate:   startDate,
+		EndDate:     endDate,
+		Description: createContract.Description,
+		Status:      entity.ContractStatusInactive,
+		Price:       createContract.Price,
+		Code:        uuid.New().String(),
+	}
+
+	if createContract.Price == 0 {
+		contract.Price = room.RoomCategory.Price
+	}
+
+	if time.Now().After(startDate) {
+		contract.Status = entity.ContractStatusActive
+	}
+
+	if err := uc.repos.Contract().Create(ctx, &contract); err != nil {
 		uc.logger.Error("Failed to create contract", zap.Error(err))
 		return response.InternalServerError("Failed to create contract")
 	}

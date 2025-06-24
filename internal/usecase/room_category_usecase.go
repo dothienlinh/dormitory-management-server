@@ -12,6 +12,11 @@ import (
 	"go.uber.org/zap"
 )
 
+type roomCategoryUseCase struct {
+	repos  repository.Repositories
+	logger logger.Logger
+}
+
 func NewRoomCategoryUseCase(repos repository.Repositories, logger logger.Logger) usecase.RoomCategoryUseCase {
 	return &roomCategoryUseCase{
 		repos:  repos,

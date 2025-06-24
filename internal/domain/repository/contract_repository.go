@@ -6,7 +6,7 @@ import (
 )
 
 type ContractRepository interface {
-	Create(ctx context.Context, contract *entity.CreateContract) error
+	Create(ctx context.Context, contract *entity.Contract) error
 
 	GetByID(ctx context.Context, id uint) (*entity.Contract, error)
 

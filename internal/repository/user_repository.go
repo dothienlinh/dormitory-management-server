@@ -58,7 +58,8 @@ func (r *userRepository) List(ctx context.Context, filter *entity.UserFilter) ([
 		return nil, 0, fmt.Errorf("failed to count users: %w", err)
 	}
 
-	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Where(whereClause, values...).
+	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).
+		Where(whereClause, values...).
 		Preload("Room.RoomCategory").
 		Order("created_at DESC").
 		Limit(filter.Limit).
