@@ -64,8 +64,6 @@ type ContractDTO struct {
 
 type ContractFilter struct {
 	Status  ContractStatus `form:"status" binding:"omitempty,oneof=active inactive cancelled"`
-	UserID  uint64         `form:"user_id"`
-	RoomID  uint64         `form:"room_id"`
 	Keyword string         `form:"keyword"`
 	Pagination
 }

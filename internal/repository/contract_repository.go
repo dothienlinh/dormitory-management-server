@@ -58,14 +58,6 @@ func (r *contractRepository) List(ctx context.Context, filter *entity.ContractFi
 		query = query.Where("status = ?", filter.Status)
 	}
 
-	if filter.UserID > 0 {
-		query = query.Where("user_id = ?", filter.UserID)
-	}
-
-	if filter.RoomID > 0 {
-		query = query.Where("room_id = ?", filter.RoomID)
-	}
-
 	if filter.Keyword != "" {
 		query = query.Where("description LIKE ?", "%"+filter.Keyword+"%")
 	}
