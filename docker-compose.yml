@@ -1,16 +1,14 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:15-alpine
     container_name: dormitory-management-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-dormitory}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     restart: always
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - ./.docker/postgres-data:/var/lib/postgresql/data
     networks:
@@ -27,7 +25,7 @@ services:
     restart: always
     ports:
       - "${REDIS_PORT:-6379}:6379"
-    command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD:-redis}
+    command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./.docker/redis-data:/data
     networks:
@@ -38,38 +36,59 @@ services:
       timeout: 5s
       retries: 5
 
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: dormitory-management-app
-  #   restart: always
-  #   ports:
-  #     - "${SERVER_PORT:-8080}:8080"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   environment:
-  #     - SERVER_PORT=${SERVER_PORT:-8080}
-  #     - SERVER_MODE=${SERVER_MODE:-debug}
-  #     - DB_HOST=postgres
-  #     - DB_PORT=5432
-  #     - DB_USER=${DB_USER:-postgres}
-  #     - DB_PASSWORD=${DB_PASSWORD:-postgres}
-  #     - DB_NAME=${DB_NAME:-dormitory}
-  #     - DB_SSL_MODE=${DB_SSL_MODE:-disable}
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
-  #     - REDIS_DB=${REDIS_DB:-0}
-  #     - JWT_SECRET=${JWT_SECRET:-your-secret-key}
-  #     - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN:-3600}
-  #     - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-604800}
-  #     - LOG_LEVEL=${LOG_LEVEL:-info}
-  #   networks:
-  #     - dormitory-network
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: dormitory-management-app
+    restart: always
+    ports:
+      - "${SERVER_PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    networks:
+      - dormitory-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: dormitory-management-worker
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    networks:
+      - dormitory-network
+    healthcheck:
+      test: ["CMD", "pgrep", "-x", "worker"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   dormitory-network:

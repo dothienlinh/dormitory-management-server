@@ -18,7 +18,6 @@ func NewOtpCodeRepository(db *gorm.DB) *OtpCodeRepository {
 }
 
 func (r *OtpCodeRepository) FindCode(ctx context.Context, otpCode *entity.OtpCode) error {
-
 	if err := r.db.WithContext(ctx).Table(otpCode.TableName()).Where(otpCode).First(&otpCode).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
@@ -33,7 +32,7 @@ func (r *OtpCodeRepository) CreateOtpCode(ctx context.Context, payload *entity.O
 	return r.db.WithContext(ctx).Table(payload.TableName()).Create(payload).Error
 }
 
-func (r *OtpCodeRepository) UseOtpCode(ctx context.Context, otpCodeId uint64) error {
+func (r *OtpCodeRepository) UseOtpCode(ctx context.Context, otpCodeID uint64) error {
 	useOtpCode := entity.UseOtpCode{IsUsed: true, VerifiedAt: time.Now().Format(time.RFC3339)}
-	return r.db.WithContext(ctx).Table(entity.OtpCode{}.TableName()).Where("id = ?", otpCodeId).Updates(useOtpCode).Error
+	return r.db.WithContext(ctx).Table(entity.OtpCode{}.TableName()).Where("id = ?", otpCodeID).Updates(useOtpCode).Error
 }
