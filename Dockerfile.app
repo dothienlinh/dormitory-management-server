@@ -23,6 +23,7 @@ RUN apk --no-cache add ca-certificates wget && adduser -D -s /bin/sh appuser
 
 WORKDIR /app
 
+COPY --from=builder /app/.env.production .env
 COPY --from=builder /app/main .
 RUN chown appuser:appuser main && chmod +x main
 

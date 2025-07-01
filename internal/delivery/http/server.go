@@ -45,6 +45,12 @@ func NewServer(cfg *config.Config, handlers *handler.Handlers, mw *middleware.Mi
 		})
 	})
 
+	ginRouter.HEAD("/health", func(c *gin.Context) {
+		c.JSON(200, map[string]string{
+			"status": "ok",
+		})
+	})
+
 	ginRouter.GET("/answerurl", func(ctx *gin.Context) {
 		log.Println("=======================================================================>answerurl<=======================================================================")
 	})
