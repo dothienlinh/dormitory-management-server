@@ -11,4 +11,5 @@ type Repositories interface {
 	OtpCode() OtpCodeRepository
 	Amenities() AmenitiesRepository
 	MaintenanceHistory() MaintenanceHistoryRepository
+	Payment() PaymentRepository
 }

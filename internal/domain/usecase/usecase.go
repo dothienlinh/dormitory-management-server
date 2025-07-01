@@ -10,4 +10,5 @@ type UseCases interface {
 	Email() EmailUseCase
 	Amenities() AmenitiesUseCase
 	MaintenanceHistory() MaintenanceHistoryUsecase
+	Payment() PaymentUseCase
 }

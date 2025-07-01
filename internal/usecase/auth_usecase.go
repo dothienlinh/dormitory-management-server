@@ -93,7 +93,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		uc.logger.Error("Failed to marshal payload", zap.Error(err))
 		return response.InternalServerError("Failed send mail verify account")
 	}
-	task := asynq.NewTask(string(tasks.TypeSendEmailVerifyAccount), jsonPayload)
+	task := asynq.NewTask(string(tasks.TaskSendEmailVerifyAccount), jsonPayload)
 	uc.asynqClient.EnqueueContext(ctx, task)
 
 	return response.Success(user, 1)
@@ -377,7 +377,7 @@ func (uc *authUseCase) ResendVerifyAccount(ctx context.Context, payload entity.S
 		uc.logger.Error("Failed to marshal payload", zap.Error(err))
 		return response.InternalServerError("Failed send mail verify account")
 	}
-	task := asynq.NewTask(string(tasks.TypeSendEmailVerifyAccount), jsonPayload)
+	task := asynq.NewTask(string(tasks.TaskSendEmailVerifyAccount), jsonPayload)
 	uc.asynqClient.EnqueueContext(ctx, task)
 
 	return response.Success("Resend Verify Account successfully", 0)

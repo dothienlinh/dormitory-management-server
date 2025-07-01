@@ -12,6 +12,8 @@ import (
 	"dormitory_management/internal/repository"
 	"dormitory_management/internal/usecase"
 	"dormitory_management/pkg/logger"
+
+	"github.com/payOSHQ/payos-lib-golang"
 )
 
 func main() {
@@ -29,6 +31,10 @@ func main() {
 	rdb, err := cache.NewRedisClient(cfg.Redis, log, context)
 	if err != nil {
 		log.Fatal("Failed to connect to Redis", err)
+	}
+
+	if err := payos.Key(cfg.PayOS.ClientID, cfg.PayOS.APIKey, cfg.PayOS.ChecksumKey); err != nil {
+		log.Fatal("Failed to initialize PayOS", err)
 	}
 
 	asynqClient := mq.NewClient(cfg)

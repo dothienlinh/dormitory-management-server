@@ -16,6 +16,7 @@ type Config struct {
 	LogLevel string
 	Email    EmailConfig
 	Client   ClientConfig
+	PayOS    PayOS
 }
 
 type ServerConfig struct {
@@ -58,6 +59,12 @@ type EmailConfig struct {
 	SMTP_ADDR         string
 }
 
+type PayOS struct {
+	ClientID    string
+	APIKey      string
+	ChecksumKey string
+}
+
 func LoadConfig() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using default values")
@@ -92,6 +99,10 @@ func LoadConfig() *Config {
 	fromEmailPassword := getEnv("FROM_EMAIL_PASSWORD", "12345678")
 	fromEmailSMTP := getEnv("FROM_EMAIL_SMTP", "smtp.gmail.com")
 	smtp_ADDR := getEnv("SMTP_ADDR", "smtp.gmail.com:587")
+
+	clientID := getEnv("PAYOS_CLIENT_ID", "")
+	apiKey := getEnv("PAYOS_API_KEY", "")
+	checksumKey := getEnv("PAYOS_CHECKSUM_KEY", "")
 
 	return &Config{
 		Server: ServerConfig{
@@ -128,6 +139,11 @@ func LoadConfig() *Config {
 			FromEmailPassword: fromEmailPassword,
 			FromEmailSMTP:     fromEmailSMTP,
 			SMTP_ADDR:         smtp_ADDR,
+		},
+		PayOS: PayOS{
+			ClientID:    clientID,
+			APIKey:      apiKey,
+			ChecksumKey: checksumKey,
 		},
 	}
 }
