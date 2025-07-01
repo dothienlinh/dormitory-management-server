@@ -18,6 +18,7 @@ type repositories struct {
 	otpCode            repository.OtpCodeRepository
 	amenities          repository.AmenitiesRepository
 	maintenanceHistory repository.MaintenanceHistoryRepository
+	payment            repository.PaymentRepository
 }
 
 func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Repositories {
@@ -33,6 +34,7 @@ func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Rep
 	repos.otpCode = NewOtpCodeRepository(db)
 	repos.amenities = NewAmenitiesRepository(db)
 	repos.maintenanceHistory = NewMaintenanceHistoryRepository(db)
+	repos.payment = NewPaymentRepository(db)
 
 	return repos
 }
@@ -75,4 +77,8 @@ func (r *repositories) Amenities() repository.AmenitiesRepository {
 
 func (r *repositories) MaintenanceHistory() repository.MaintenanceHistoryRepository {
 	return r.maintenanceHistory
+}
+
+func (r *repositories) Payment() repository.PaymentRepository {
+	return r.payment
 }

@@ -2,6 +2,8 @@ package common
 
 import (
 	"math/rand"
+	"strconv"
+	"time"
 )
 
 func GenerateCode(length int) string {
@@ -17,4 +19,11 @@ func GenerateCode(length int) string {
 	}
 
 	return string(code)
+}
+
+func GenerateNumber() int {
+	millis := time.Now().UnixNano() / int64(time.Millisecond)
+	millisStr := strconv.FormatInt(millis, 10)
+	number, _ := strconv.Atoi(millisStr[len(millisStr)-6:])
+	return number
 }

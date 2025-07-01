@@ -8,16 +8,22 @@ import (
 
 type (
 	Consumer struct {
-		emailTask *EmailTask
+		emailTask   *EmailTask
+		paymentTask *PaymentTask
 	}
 )
 
 func NewConsumer(logger logger.Logger, config *config.Config, repos repository.Repositories) *Consumer {
 	return &Consumer{
-		emailTask: NewEmailTask(logger, config, repos),
+		emailTask:   NewEmailTask(logger, config, repos),
+		paymentTask: NewPaymentTask(logger, config, repos),
 	}
 }
 
 func (c *Consumer) EmailTask() *EmailTask {
 	return c.emailTask
+}
+
+func (c *Consumer) PaymentTask() *PaymentTask {
+	return c.paymentTask
 }

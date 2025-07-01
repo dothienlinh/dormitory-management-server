@@ -124,11 +124,15 @@ func main() {
 	mux.Use(recoveryMiddleware(log))
 	mux.Use(metricsMiddleware(log))
 
-	mux.HandleFunc(string(tasks.TypeSendCodeEmail), func(ctx context.Context, t *asynq.Task) error {
+	mux.HandleFunc(string(tasks.TaskSendCodeEmail), func(ctx context.Context, t *asynq.Task) error {
 		return consumer.EmailTask().SendOTP(ctx, t)
 	})
-	mux.HandleFunc(string(tasks.TypeSendEmailVerifyAccount), func(ctx context.Context, t *asynq.Task) error {
+	mux.HandleFunc(string(tasks.TaskSendEmailVerifyAccount), func(ctx context.Context, t *asynq.Task) error {
 		return consumer.EmailTask().SendVerifyAccount(ctx, t)
+	})
+
+	mux.HandleFunc(string(tasks.TaskCreateLinkPaymentVietQR), func(ctx context.Context, t *asynq.Task) error {
+		return consumer.PaymentTask().CreateLinkPaymentVietQR(ctx, t)
 	})
 
 	sigs := make(chan os.Signal, 1)

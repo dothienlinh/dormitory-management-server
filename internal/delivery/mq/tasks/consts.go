@@ -3,8 +3,9 @@ package tasks
 type TaskType string
 
 const (
-	TypeSendCodeEmail          TaskType = "email:send_code_email"
-	TypeSendEmailVerifyAccount TaskType = "email:send_email_verify_account"
+	TaskSendCodeEmail           TaskType = "task:send_code_email"
+	TaskSendEmailVerifyAccount  TaskType = "task:send_email_verify_account"
+	TaskCreateLinkPaymentVietQR TaskType = "task:create_link_payment_vietqr"
 )
 
 const (

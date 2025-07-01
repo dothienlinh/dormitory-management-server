@@ -51,7 +51,7 @@ func (uc *emailUseCase) SendOTP(ctx context.Context, payload entity.SendCodeEmai
 		return nil, err
 	}
 
-	task := asynq.NewTask(string(tasks.TypeSendCodeEmail), jsonPayload)
+	task := asynq.NewTask(string(tasks.TaskSendCodeEmail), jsonPayload)
 
 	return uc.asynqClient.EnqueueContext(ctx, task)
 }
