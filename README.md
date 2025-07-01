@@ -291,3 +291,11 @@ docker-compose up -d
 ```
 
 This will start PostgreSQL and Redis services, along with the API server.
+
+## Production Deployment
+
+For production deployment, you can use the provided Docker Compose file with a production environment file:
+
+```bash
+docker-compose --env-file .env.production up -d
+```
