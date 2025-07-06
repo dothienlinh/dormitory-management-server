@@ -30,3 +30,18 @@ migrate-reset:
 
 migrate-version:
 	go run cmd/migrate/main.go version
+
+build-app-docker:
+	docker-compose --env-file .env.production up -d app --build
+
+build-worker-docker:
+	docker-compose --env-file .env.production up -d worker --build
+
+build-db-docker:
+	docker-compose --env-file .env.production up -d postgres --build
+
+build-redis-docker:
+	docker-compose --env-file .env.production up -d redis --build
+
+build-docker:
+	docker-compose --env-file .env.production up -d --build
