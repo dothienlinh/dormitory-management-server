@@ -54,14 +54,23 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		return response.BadRequest("Email already exists")
 	}
 
+	var statusAccount entity.StatusAccount
+	switch userData.Role {
+	case entity.UserRoleStudent:
+		statusAccount = entity.StatusAccountApproved
+	case entity.UserRoleStaff:
+		statusAccount = entity.StatusAccountPending
+	}
+
 	user := &entity.User{
-		FullName: userData.FullName,
-		Email:    userData.Email,
-		Password: userData.Password,
-		Phone:    userData.Phone,
-		Role:     entity.UserRoleStudent,
-		Gender:   entity.UserGenderOther,
-		Status:   entity.UserStatusActive,
+		FullName:      userData.FullName,
+		Email:         userData.Email,
+		Password:      userData.Password,
+		Phone:         userData.Phone,
+		Role:          userData.Role,
+		Gender:        entity.UserGenderOther,
+		Status:        entity.UserStatusActive,
+		StatusAccount: statusAccount,
 	}
 	otpCode := &entity.OtpCode{
 		IsUsed:         false,
@@ -130,7 +139,7 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 		Email:    loginData.Email,
 		Password: loginData.Password,
 	}
-	if err := uc.repos.Auth().Login(ctx, user); err != nil {
+	if err := uc.repos.Auth().Login(ctx, user, loginData.Type); err != nil {
 		uc.logger.Error("Login failed", zap.Error(err))
 		return response.Unauthorized(err.Error())
 	}
@@ -138,6 +147,15 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 	if !user.IsVerify {
 		uc.logger.Error("Unverified user")
 		return response.Forbidden("Unverified user")
+	}
+
+	switch user.StatusAccount {
+	case entity.StatusAccountPending:
+		return response.Forbidden("Account is pending approval")
+	case entity.StatusAccountRejected:
+		return response.Forbidden("Account is rejected")
+	case entity.StatusAccountBanned:
+		return response.Forbidden("Account is banned")
 	}
 
 	accessToken, refreshToken, err := uc.GenerateTokens(ctx, user.ID)

@@ -193,6 +193,13 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		if user.StatusAccount != entity.StatusAccountApproved {
+			resp := response.Unauthorized("Account not approved")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
 		m.setUserInContext(c, user)
 
 		c.Next()

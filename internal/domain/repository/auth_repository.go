@@ -20,7 +20,7 @@ type AuthRepository interface {
 
 	Register(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error
 
-	Login(ctx context.Context, user *entity.User) error
+	Login(ctx context.Context, user *entity.User, loginType entity.LoginType) error
 
 	VerifyAccount(ctx context.Context, otpCode *entity.OtpCode, user *entity.User) error
 }

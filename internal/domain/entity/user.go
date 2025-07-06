@@ -13,6 +13,7 @@ type UserRole string
 const (
 	UserRoleStudent UserRole = "student"
 	UserRoleAdmin   UserRole = "admin"
+	UserRoleStaff   UserRole = "staff"
 )
 
 type UserGender string
@@ -31,23 +32,33 @@ const (
 	UserStatusAbsent   UserStatus = "absent"
 )
 
+type StatusAccount string
+
+const (
+	StatusAccountPending  StatusAccount = "pending"
+	StatusAccountApproved StatusAccount = "approved"
+	StatusAccountRejected StatusAccount = "rejected"
+	StatusAccountBanned   StatusAccount = "banned"
+)
+
 type User struct {
 	Base
-	FullName    string      `json:"full_name"`
-	StudentCode string      `json:"student_code"`
-	Email       string      `json:"email"`
-	Password    string      `json:"-"`
-	Role        UserRole    `json:"role"`
-	Gender      UserGender  `json:"gender"`
-	Status      UserStatus  `json:"status"`
-	Phone       string      `json:"phone"`
-	IsVerify    bool        `json:"is_verify"`
-	Birthday    *time.Time  `json:"birthday"`
-	Avatar      *string     `json:"avatar"`
-	RoomID      *uint       `json:"-"`
-	Room        *Room       `json:"room"`
-	Contracts   *[]Contract `json:"contracts"`
-	Payments    *[]Payment  `json:"payments"`
+	FullName      string        `json:"full_name"`
+	StudentCode   string        `json:"student_code"`
+	Email         string        `json:"email"`
+	Password      string        `json:"-"`
+	Role          UserRole      `json:"role"`
+	Gender        UserGender    `json:"gender"`
+	Status        UserStatus    `json:"status"`
+	Phone         string        `json:"phone"`
+	IsVerify      bool          `json:"is_verify"`
+	StatusAccount StatusAccount `json:"status_account"`
+	Birthday      *time.Time    `json:"birthday"`
+	Avatar        *string       `json:"avatar"`
+	RoomID        *uint         `json:"-"`
+	Room          *Room         `json:"room"`
+	Contracts     *[]Contract   `json:"contracts"`
+	Payments      *[]Payment    `json:"payments"`
 }
 
 func (User) TableName() string {
@@ -138,15 +149,24 @@ func (f UserFilter) Build() (string, []interface{}) {
 }
 
 type UserRegister struct {
-	FullName string `json:"full_name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Phone    string `json:"phone" binding:"required"`
-	Password string `json:"password" binding:"required,min=8"`
+	FullName string   `json:"full_name" binding:"required"`
+	Email    string   `json:"email" binding:"required,email"`
+	Phone    string   `json:"phone" binding:"required"`
+	Password string   `json:"password" binding:"required,min=8"`
+	Role     UserRole `json:"role" binding:"required,oneof=student staff"`
 }
 
+type LoginType string
+
+const (
+	LoginTypeStudent LoginType = "student"
+	LoginTypeManager LoginType = "manager"
+)
+
 type UserLogin struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
+	Email    string    `json:"email" binding:"required,email"`
+	Password string    `json:"password" binding:"required,min=8"`
+	Type     LoginType `json:"type" binding:"required,oneof=student manager"`
 }
 
 type UserRefreshToken struct {
