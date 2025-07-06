@@ -84,9 +84,18 @@ func (r *authRepository) Register(ctx context.Context, user *entity.User, otpCod
 
 }
 
-func (r *authRepository) Login(ctx context.Context, user *entity.User) error {
+func (r *authRepository) Login(ctx context.Context, user *entity.User, loginType entity.LoginType) error {
 	password := user.Password
-	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("email = ?", user.Email).First(user).Error; err != nil {
+	var roleConditions []entity.UserRole
+
+	switch loginType {
+	case entity.LoginTypeStudent:
+		roleConditions = append(roleConditions, entity.UserRoleStudent)
+	case entity.LoginTypeManager:
+		roleConditions = append(roleConditions, entity.UserRoleAdmin, entity.UserRoleStaff)
+	}
+
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("email = ? AND role IN ?", user.Email, roleConditions).First(user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("invalid email or password")
 		}
