@@ -116,3 +116,21 @@ func (uc *userUseCase) UserLeavesRoom(ctx context.Context, payload entity.UserLe
 
 	return response.Success("User removed from room successfully", 0)
 }
+
+func (uc *userUseCase) UpdateUserStatusAccount(ctx context.Context, userID uint64, statusAccount entity.StatusAccount) response.StatusResponse {
+	user := &entity.User{
+		Base: entity.Base{ID: userID},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
+		uc.logger.Error("Failed to get user by ID", zap.Error(err))
+		return response.NotFound(fmt.Sprintf("User with ID %d not found", userID))
+	}
+
+	user.StatusAccount = statusAccount
+	if err := uc.repos.User().UpdateUserStatusAccount(ctx, user); err != nil {
+		uc.logger.Error("Failed to update user status account", zap.Error(err))
+		return response.InternalServerError("Failed to update user status account")
+	}
+
+	return response.Success("User status account updated successfully", 0)
+}

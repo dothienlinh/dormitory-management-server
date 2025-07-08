@@ -44,7 +44,7 @@ const (
 type User struct {
 	Base
 	FullName      string        `json:"full_name"`
-	StudentCode   string        `json:"student_code"`
+	StudentCode   *string       `json:"student_code"`
 	Email         string        `json:"email"`
 	Password      string        `json:"-"`
 	Role          UserRole      `json:"role"`
@@ -81,7 +81,7 @@ type UpdateUser struct {
 type UserSimple struct {
 	Base
 	FullName    string     `json:"full_name"`
-	StudentCode string     `json:"student_code"`
+	StudentCode *string    `json:"student_code"`
 	Email       string     `json:"email"`
 	Gender      UserGender `json:"gender"`
 	Status      UserStatus `json:"status"`
@@ -111,21 +111,30 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	}
 	u.Password = hashedPassword
 
-	u.StudentCode = time.Now().Format("20060102150405")
+	return nil
+}
 
+func (u *User) ResetPassword(newPassword string) error {
+	hashedPassword, err := helper.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	u.Password = hashedPassword
 	return nil
 }
 
 type UserFilter struct {
-	Status  UserStatus `form:"status" binding:"omitempty,oneof=active inactive absent"`
-	Keyword string     `form:"keyword"`
-	Gender  UserGender `form:"gender" binding:"omitempty,oneof=male female other"`
+	Status        UserStatus    `form:"status" binding:"omitempty,oneof=active inactive absent"`
+	Keyword       string        `form:"keyword" binding:"omitempty"`
+	Gender        UserGender    `form:"gender" binding:"omitempty,oneof=male female other"`
+	Role          UserRole      `form:"role" binding:"omitempty,oneof=student staff"`
+	StatusAccount StatusAccount `form:"status_account" binding:"omitempty,oneof=pending approved rejected banned"`
 	Pagination
 }
 
 func (f UserFilter) Build() (string, []interface{}) {
-	conditions := []string{"role = ?", "is_verify = ?"}
-	values := []interface{}{UserRoleStudent, true}
+	conditions := []string{"is_verify = ?"}
+	values := []interface{}{true}
 
 	if f.Status != "" {
 		conditions = append(conditions, "status = ?")
@@ -141,6 +150,19 @@ func (f UserFilter) Build() (string, []interface{}) {
 		conditions = append(conditions, "(full_name LIKE ? OR email LIKE ? OR phone LIKE ? OR student_code LIKE ?)")
 		keyword := "%" + f.Keyword + "%"
 		values = append(values, keyword, keyword, keyword, keyword)
+	}
+
+	if f.Role != "" {
+		conditions = append(conditions, "role = ?")
+		values = append(values, f.Role)
+	} else {
+		conditions = append(conditions, "role != ?")
+		values = append(values, UserRoleAdmin)
+	}
+
+	if f.StatusAccount != "" {
+		conditions = append(conditions, "status_account = ?")
+		values = append(values, f.StatusAccount)
 	}
 
 	whereClause := strings.Join(conditions, " AND ")
@@ -176,7 +198,7 @@ type UserRefreshToken struct {
 type UserDTO struct {
 	ID          uint       `json:"id"`
 	FullName    string     `json:"full_name"`
-	StudentCode string     `json:"student_code"`
+	StudentCode *string    `json:"student_code"`
 	Email       string     `json:"email"`
 	Role        UserRole   `json:"role"`
 	Gender      UserGender `json:"gender"`
@@ -198,4 +220,8 @@ type AddUserToRoom struct {
 type UserLeavesRoom struct {
 	UserID uint64 `json:"user_id" binding:"required,numeric"`
 	RoomID uint   `json:"room_id" binding:"required,numeric"`
+}
+
+type UserStatusAccountUpdate struct {
+	StatusAccount StatusAccount `json:"status_account" binding:"required,oneof=pending approved rejected banned"`
 }

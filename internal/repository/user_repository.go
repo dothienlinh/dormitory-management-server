@@ -149,3 +149,20 @@ func (r *userRepository) UserLeavesRoom(ctx context.Context, payload entity.User
 
 	return nil
 }
+
+func (r *userRepository) CheckStudentCodeExists(ctx context.Context, studentCode string) error {
+	return r.db.WithContext(ctx).Table(entity.User{}.TableName()).
+		Where("student_code = ?", studentCode).
+		First(&entity.User{}).Error
+}
+
+func (r *userRepository) UpdateUserStatusAccount(ctx context.Context, user *entity.User) error {
+	if err := r.db.WithContext(ctx).Table(user.TableName()).Where("id = ?", user.ID).Update("status_account", user.StatusAccount).Error; err != nil {
+		return fmt.Errorf("failed to update user status account: %w", err)
+	}
+	return nil
+}
+
+func (r *userRepository) GetUserByRoles(ctx context.Context, user *entity.User, roles []entity.UserRole) error {
+	return r.db.WithContext(ctx).Table(user.TableName()).Where("email = ? AND role IN ?", user.Email, roles).First(user).Error
+}

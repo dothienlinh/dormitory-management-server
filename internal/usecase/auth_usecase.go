@@ -22,6 +22,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type Claims struct {
@@ -62,6 +63,21 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		statusAccount = entity.StatusAccountPending
 	}
 
+	var studentCode *string
+	if userData.Role == entity.UserRoleStudent {
+		for {
+			code := common.GenerateStudentCode()
+			if err := uc.repos.User().CheckStudentCodeExists(ctx, code); err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					studentCode = &code
+					break
+				}
+				uc.logger.Error("Failed to check student code uniqueness", zap.Error(err))
+				return response.InternalServerError("Failed to check student code uniqueness")
+			}
+		}
+	}
+
 	user := &entity.User{
 		FullName:      userData.FullName,
 		Email:         userData.Email,
@@ -71,6 +87,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 		Gender:        entity.UserGenderOther,
 		Status:        entity.UserStatusActive,
 		StatusAccount: statusAccount,
+		StudentCode:   studentCode,
 	}
 	otpCode := &entity.OtpCode{
 		IsUsed:         false,
@@ -146,7 +163,12 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 
 	if !user.IsVerify {
 		uc.logger.Error("Unverified user")
-		return response.Forbidden("Unverified user")
+		return response.Success(map[string]interface{}{
+			"user":          user,
+			"is_verified":   user.IsVerify,
+			"access_token":  nil,
+			"refresh_token": nil,
+		}, 0)
 	}
 
 	switch user.StatusAccount {
@@ -180,9 +202,10 @@ func (uc *authUseCase) Login(ctx context.Context, loginData *entity.UserLogin) r
 
 	return response.Success(map[string]interface{}{
 		"user":          user,
+		"is_verified":   user.IsVerify,
 		"access_token":  encryptAccessToken,
 		"refresh_token": encryptRefreshToken,
-	}, 1)
+	}, 0)
 }
 
 func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) response.StatusResponse {
@@ -288,6 +311,17 @@ func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint64) (strin
 }
 
 func (uc *authUseCase) VerifyAccount(ctx context.Context, payload entity.VerifyAccount) response.StatusResponse {
+	user := &entity.User{
+		Email: payload.Email,
+	}
+	if err := uc.repos.User().GetByEmail(ctx, user); err != nil {
+		uc.logger.Error("Failed find user by email", zap.Error(err))
+		return response.BadRequest(err.Error())
+	}
+	if user.IsVerify {
+		uc.logger.Error("User already verified")
+		return response.BadRequest("User already verified")
+	}
 
 	unescapeToken, err := url.QueryUnescape(payload.Token)
 	if err != nil {
@@ -298,7 +332,7 @@ func (uc *authUseCase) VerifyAccount(ctx context.Context, payload entity.VerifyA
 	tokenDecrypt, err := helper.Decrypt(unescapeToken, uc.config.Server.SecretKey)
 	if err != nil {
 		uc.logger.Error("Failed to decrypt token", zap.Error(err))
-		return response.Unauthorized(err.Error())
+		return response.BadRequest(err.Error())
 	}
 
 	otpCode := &entity.OtpCode{
@@ -307,21 +341,21 @@ func (uc *authUseCase) VerifyAccount(ctx context.Context, payload entity.VerifyA
 	}
 	if err := uc.repos.OtpCode().FindCode(ctx, otpCode); err != nil {
 		uc.logger.Error("Failed to find otp code", zap.Error(err))
-		return response.Unauthorized(err.Error())
+		return response.BadRequest(err.Error())
 	}
 
 	if otpCode.ID == 0 {
-		return response.Unauthorized("Otp code not found")
+		return response.BadRequest("Otp code not found")
 	}
 
 	if otpCode.IsUsed || otpCode.VerifiedAt != nil {
-		return response.Unauthorized("Otp code used")
+		return response.BadRequest("Otp code used")
 	}
 
 	if otpCode.Identifier != payload.Email ||
 		otpCode.IdentifierType != entity.IdentifierTypeEmail.String() ||
 		otpCode.OtpType != entity.OtpTypeVerifyAccount.String() {
-		return response.Unauthorized("Invalid otp code")
+		return response.BadRequest("Invalid otp code")
 	}
 
 	expiresAt, err := common.ParsedTime(otpCode.ExpiresAt)
@@ -332,14 +366,6 @@ func (uc *authUseCase) VerifyAccount(ctx context.Context, payload entity.VerifyA
 	if time.Now().After(expiresAt) {
 		uc.logger.Error("OTP code expired")
 		return response.BadRequest("OTP code expired")
-	}
-
-	user := &entity.User{
-		Email: payload.Email,
-	}
-	if err := uc.repos.User().GetByEmail(ctx, user); err != nil {
-		uc.logger.Error("Failed find user by email", zap.Error(err))
-		return response.BadRequest(err.Error())
 	}
 
 	if err := uc.repos.Auth().VerifyAccount(ctx, otpCode, user); err != nil {
@@ -399,6 +425,141 @@ func (uc *authUseCase) ResendVerifyAccount(ctx context.Context, payload entity.S
 	uc.asynqClient.EnqueueContext(ctx, task)
 
 	return response.Success("Resend Verify Account successfully", 0)
+}
+
+func (uc *authUseCase) ForgotPassword(ctx context.Context, payload entity.SendCodeEmail) response.StatusResponse {
+	user := &entity.User{
+		Email: payload.Email,
+	}
+
+	roles := []entity.UserRole{}
+
+	if payload.Type == entity.UserRoleStudent {
+		roles = append(roles, entity.UserRoleStudent)
+	} else {
+		roles = append(roles, entity.UserRoleStaff, entity.UserRoleAdmin)
+	}
+
+	if err := uc.repos.User().GetUserByRoles(ctx, user, roles); err != nil {
+		uc.logger.Error("Failed find user by email", zap.Error(err))
+		return response.BadRequest(err.Error())
+	}
+
+	if !user.IsVerify {
+		uc.logger.Error("User not verified")
+		return response.BadRequest("User not verified")
+	}
+
+	otpCode := &entity.OtpCode{
+		IsUsed:         false,
+		OtpCode:        common.GenerateCode(6),
+		UserID:         &user.ID,
+		IdentifierType: entity.IdentifierTypeEmail.String(),
+		Identifier:     payload.Email,
+		OtpType:        entity.OtpTypeForgotPassword.String(),
+		ExpiresAt:      common.GetExpireTime(15),
+	}
+
+	if err := uc.repos.OtpCode().CreateOtpCode(ctx, otpCode); err != nil {
+		uc.logger.Error("Failed create otp code", zap.Error(err))
+		return response.InternalServerError("Failed create otp code")
+	}
+
+	jsonPayload, err := json.Marshal(&entity.SendMailForgotPassword{
+		UserID: user.ID,
+		Email:  user.Email,
+		Code:   otpCode.OtpCode,
+	})
+
+	if err != nil {
+		uc.logger.Error("Failed to marshal payload", zap.Error(err))
+		return response.InternalServerError("Failed send mail forgot password")
+	}
+	task := asynq.NewTask(string(tasks.TaskSendEmailForgotPassword), jsonPayload)
+	uc.asynqClient.EnqueueContext(ctx, task)
+
+	return response.Success("Send forgot password email successfully", 0)
+}
+
+func (uc *authUseCase) ResetPassword(ctx context.Context, payload entity.ResetPassword) response.StatusResponse {
+	user := &entity.User{
+		Email: payload.Email,
+	}
+
+	if err := uc.repos.User().GetByEmail(ctx, user); err != nil {
+		uc.logger.Error("Failed find user by email", zap.Error(err))
+		return response.BadRequest(err.Error())
+	}
+
+	otpCode := &entity.OtpCode{
+		OtpCode:        payload.Code,
+		Identifier:     payload.Email,
+		IdentifierType: entity.IdentifierTypeEmail.String(),
+		OtpType:        entity.OtpTypeForgotPassword.String(),
+		UserID:         &user.ID,
+	}
+
+	if err := uc.repos.OtpCode().FindCode(ctx, otpCode); err != nil {
+		uc.logger.Error("Failed to find otp code", zap.Error(err))
+		return response.BadRequest(err.Error())
+	}
+
+	if otpCode.ID == 0 {
+		return response.BadRequest("Otp code not found")
+	}
+
+	if otpCode.IsUsed || otpCode.VerifiedAt != nil {
+		return response.BadRequest("Otp code used")
+	}
+
+	if otpCode.Identifier != payload.Email ||
+		otpCode.IdentifierType != entity.IdentifierTypeEmail.String() ||
+		otpCode.OtpType != entity.OtpTypeForgotPassword.String() {
+		return response.BadRequest("Invalid otp code")
+	}
+
+	expiresAt, err := common.ParsedTime(otpCode.ExpiresAt)
+	if err != nil {
+		uc.logger.Error("Failed to parse expiresAt", zap.Error(err))
+		return response.InternalServerError("Failed to verify OTP code")
+	}
+	if time.Now().After(expiresAt) {
+		uc.logger.Error("OTP code expired")
+		return response.BadRequest("OTP code expired")
+	}
+
+	if err := user.ResetPassword(payload.NewPassword); err != nil {
+		uc.logger.Error("Failed to reset user password", zap.Error(err))
+		return response.InternalServerError("Failed to reset user password")
+	}
+
+	if err := uc.repos.Auth().ResetPassword(ctx, user, otpCode); err != nil {
+		uc.logger.Error("Failed to reset password", zap.Error(err))
+		return response.InternalServerError("Failed to reset password")
+	}
+
+	return response.Success("Reset password successfully", 0)
+}
+
+func (uc *authUseCase) ChangePassword(ctx context.Context, userID uint64, payload entity.ChangePassword) response.StatusResponse {
+	user := &entity.User{
+		Base: entity.Base{ID: userID},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
+		uc.logger.Error("User not found", zap.Error(err))
+		return response.Unauthorized("User not found")
+	}
+
+	if !helper.CheckPassword(payload.OldPassword, user.Password) {
+		return response.Unauthorized("Invalid old password")
+	}
+
+	if err := user.ResetPassword(payload.NewPassword); err != nil {
+		uc.logger.Error("Failed to reset password", zap.Error(err))
+		return response.InternalServerError("Failed to change password")
+	}
+
+	return response.Success("Change password successfully", 0)
 }
 
 func (uc *authUseCase) createToken(tokenClaims Claims, accessSecret string) (string, error) {

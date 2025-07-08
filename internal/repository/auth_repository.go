@@ -102,10 +102,6 @@ func (r *authRepository) Login(ctx context.Context, user *entity.User, loginType
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if !user.IsVerify {
-		return errors.New("unverified user")
-	}
-
 	if !helper.CheckPassword(password, user.Password) {
 		return errors.New("invalid email or password")
 	}
@@ -121,6 +117,20 @@ func (r *authRepository) VerifyAccount(ctx context.Context, otpCode *entity.OtpC
 		}
 
 		if err := tx.WithContext(ctx).Table(user.TableName()).Where(user).Updates(entity.User{IsVerify: true}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (r *authRepository) ResetPassword(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).Table(otpCode.TableName()).Where(otpCode).Updates(entity.UseOtpCode{IsUsed: true, VerifiedAt: time.Now().Format(time.RFC3339)}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.WithContext(ctx).Table(user.TableName()).Where("id = ?", user.ID).Updates(entity.User{Password: user.Password}).Error; err != nil {
 			return err
 		}
 

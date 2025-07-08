@@ -20,4 +20,7 @@ type AuthUseCase interface {
 	Me(ctx context.Context, userID uint64) response.StatusResponse
 	VerifyAccount(ctx context.Context, payload entity.VerifyAccount) response.StatusResponse
 	ResendVerifyAccount(ctx context.Context, payload entity.SendCodeEmail) response.StatusResponse
+	ForgotPassword(ctx context.Context, payload entity.SendCodeEmail) response.StatusResponse
+	ResetPassword(ctx context.Context, payload entity.ResetPassword) response.StatusResponse
+	ChangePassword(ctx context.Context, userID uint64, payload entity.ChangePassword) response.StatusResponse
 }
