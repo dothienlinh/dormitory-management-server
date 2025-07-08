@@ -21,10 +21,11 @@ const (
 	OtpTypeVerifyPhone
 	OtpTypeTransaction
 	OtpTypeVerifyAccount
+	OtpTypeForgotPassword
 )
 
 func (i OtpTypeEnum) String() string {
-	return []string{"login", "register", "reset_password", "verify_email", "verify_phone", "transaction", "verify_account"}[i]
+	return []string{"login", "register", "reset_password", "verify_email", "verify_phone", "transaction", "verify_account", "forgot_password"}[i]
 }
 
 type OtpCode struct {

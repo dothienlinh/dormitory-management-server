@@ -23,4 +23,6 @@ type AuthRepository interface {
 	Login(ctx context.Context, user *entity.User, loginType entity.LoginType) error
 
 	VerifyAccount(ctx context.Context, otpCode *entity.OtpCode, user *entity.User) error
+
+	ResetPassword(ctx context.Context, user *entity.User, otpCode *entity.OtpCode) error
 }

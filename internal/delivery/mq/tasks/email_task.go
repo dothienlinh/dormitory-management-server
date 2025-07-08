@@ -65,7 +65,8 @@ func (et *EmailTask) SendVerifyAccount(ctx context.Context, t *asynq.Task) error
 	}
 
 	escapeToken := url.QueryEscape(payload.Token)
-	verifyLink := fmt.Sprintf("%s/%s", et.config.Client.ClientDomain, escapeToken)
+	escapeEmail := url.QueryEscape(payload.Email)
+	verifyLink := fmt.Sprintf("%s/auth/verify-account/%s/%s", et.config.Client.ClientDomain, escapeToken, escapeEmail)
 
 	to := []string{payload.Email}
 	subject := "Verify Account"

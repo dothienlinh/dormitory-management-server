@@ -17,5 +17,8 @@ func SetupAuthRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *mi
 		auth.GET("/me", mw.AuthMiddleware(), handlers.Auth.Me())
 		auth.POST("/verify-account", handlers.Auth.VerifyAccount())
 		auth.POST("/resend-verify-account", handlers.Auth.ResendVerifyAccount())
+		auth.POST("/forgot-password", handlers.Auth.ForgotPassword())
+		auth.POST("/reset-password", handlers.Auth.ResetPassword())
+		auth.POST("/change-password", mw.AuthMiddleware(), handlers.Auth.ChangePassword())
 	}
 }

@@ -140,3 +140,61 @@ func (h *AuthHandler) ResendVerifyAccount() gin.HandlerFunc {
 		ctx.JSON(resp.Status, resp.Response)
 	}
 }
+
+func (h *AuthHandler) ForgotPassword() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("ResendVerifyAccount")
+
+		var payload entity.SendCodeEmail
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.Auth().ForgotPassword(ctx, payload)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *AuthHandler) ResetPassword() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("ResetPassword")
+
+		var payload entity.ResetPassword
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.Auth().ResetPassword(ctx, payload)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *AuthHandler) ChangePassword() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("ChangePassword")
+
+		userID, exists := ctx.Get("userID")
+		if !exists {
+			resp = response.Unauthorized("User ID not found")
+			ctx.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		var payload entity.ChangePassword
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.Auth().ChangePassword(ctx, userID.(uint64), payload)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}

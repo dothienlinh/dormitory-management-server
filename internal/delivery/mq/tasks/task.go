@@ -10,6 +10,7 @@ type (
 	Consumer struct {
 		emailTask   *EmailTask
 		paymentTask *PaymentTask
+		authTask    *AuthTask
 	}
 )
 
@@ -17,6 +18,7 @@ func NewConsumer(logger logger.Logger, config *config.Config, repos repository.R
 	return &Consumer{
 		emailTask:   NewEmailTask(logger, config, repos),
 		paymentTask: NewPaymentTask(logger, config, repos),
+		authTask:    NewAuthTask(logger, config, repos),
 	}
 }
 
@@ -26,4 +28,8 @@ func (c *Consumer) EmailTask() *EmailTask {
 
 func (c *Consumer) PaymentTask() *PaymentTask {
 	return c.paymentTask
+}
+
+func (c *Consumer) AuthTask() *AuthTask {
+	return c.authTask
 }

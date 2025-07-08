@@ -135,6 +135,10 @@ func main() {
 		return consumer.PaymentTask().CreateLinkPaymentVietQR(ctx, t)
 	})
 
+	mux.HandleFunc(string(tasks.TaskSendEmailForgotPassword), func(ctx context.Context, t *asynq.Task) error {
+		return consumer.AuthTask().SendEmailForgotPassword(ctx, t)
+	})
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 

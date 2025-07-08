@@ -21,4 +21,10 @@ type UserRepository interface {
 	AddUserToRoom(ctx context.Context, payload entity.AddUserToRoom) error
 
 	UserLeavesRoom(ctx context.Context, payload entity.UserLeavesRoom) error
+
+	CheckStudentCodeExists(ctx context.Context, studentCode string) error
+
+	UpdateUserStatusAccount(ctx context.Context, user *entity.User) error
+
+	GetUserByRoles(ctx context.Context, user *entity.User, roles []entity.UserRole) error
 }

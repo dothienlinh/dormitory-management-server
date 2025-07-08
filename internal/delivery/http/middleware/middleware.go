@@ -233,6 +233,69 @@ func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
+func (m *Middleware) StaffMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("userRole")
+		if !exists {
+			resp := response.Unauthorized("User role not found")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
+		if fmt.Sprintf("%v", role) != string(entity.UserRoleStaff) {
+			resp := response.Unauthorized("Staff access required")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func (m *Middleware) StudentMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("userRole")
+		if !exists {
+			resp := response.Unauthorized("User role not found")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
+		if fmt.Sprintf("%v", role) != string(entity.UserRoleStudent) {
+			resp := response.Unauthorized("Student access required")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func (m *Middleware) ManagerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("userRole")
+		if !exists {
+			resp := response.Unauthorized("User role not found")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
+		if fmt.Sprintf("%v", role) != string(entity.UserRoleAdmin) && fmt.Sprintf("%v", role) != string(entity.UserRoleStaff) {
+			resp := response.Unauthorized("Manager access required")
+			c.JSON(resp.Status, resp.Response)
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func (m *Middleware) ErrorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()

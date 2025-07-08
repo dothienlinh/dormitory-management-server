@@ -136,3 +136,28 @@ func (h *UserHandler) UserLeavesRoom() gin.HandlerFunc {
 		c.JSON(resp.Status, resp.Response)
 	}
 }
+
+func (h *UserHandler) UpdateUserStatusAccount() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("UpdateUserStatusAccount")
+
+		userID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+		if err != nil {
+			h.logger.Error("Failed to parse user ID", zap.Error(err))
+			resp = response.BadRequest("Invalid user ID")
+			ctx.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		var statusAccount entity.UserStatusAccountUpdate
+		if err := ctx.ShouldBindJSON(&statusAccount); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.User().UpdateUserStatusAccount(ctx, userID, statusAccount.StatusAccount)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}
