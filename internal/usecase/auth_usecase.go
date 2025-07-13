@@ -551,7 +551,7 @@ func (uc *authUseCase) ChangePassword(ctx context.Context, userID uint64, payloa
 	}
 
 	if !helper.CheckPassword(payload.OldPassword, user.Password) {
-		return response.Unauthorized("Invalid old password")
+		return response.BadRequest("Invalid old password")
 	}
 
 	if err := user.ResetPassword(payload.NewPassword); err != nil {

@@ -12,6 +12,7 @@ func SetupUserRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *mi
 	{
 		users.GET("", mw.ManagerMiddleware(), handlers.User.GetListUsers())
 		users.GET("/:id", mw.ManagerMiddleware(), handlers.User.GetUserByID())
+		users.PUT("/me", mw.AuthMiddleware(), handlers.User.UpdateMe())
 		users.PUT("/:id", mw.ManagerMiddleware(), handlers.User.UpdateUser())
 		users.DELETE("/:id", mw.AdminMiddleware(), handlers.User.DeleteUser())
 		users.POST("/room", mw.StaffMiddleware(), handlers.User.AddUserToRoom())

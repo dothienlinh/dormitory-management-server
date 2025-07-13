@@ -14,7 +14,7 @@ func SetupContractRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw
 		contracts.GET("/:id", handlers.Contract.GetContractByID())
 		contracts.GET("/user/:user_id", handlers.Contract.GetContractByUserID())
 
-		contractAdmin := contracts.Group("", mw.AdminMiddleware())
+		contractAdmin := contracts.Group("", mw.ManagerMiddleware())
 		{
 			contractAdmin.POST("", handlers.Contract.CreateContract())
 			contractAdmin.PUT("/:id", handlers.Contract.UpdateContract())

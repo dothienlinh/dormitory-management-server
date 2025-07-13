@@ -13,7 +13,7 @@ func SetupRoomCategoryRoutes(router *gin.RouterGroup, handlers *handler.Handlers
 		roomCategories.GET("", handlers.RoomCategory.GetListRoomCategories())
 		roomCategories.GET("/:id", handlers.RoomCategory.GetRoomCategoryByID())
 
-		roomCategoryAdmin := roomCategories.Group("", mw.AuthMiddleware(), mw.AdminMiddleware())
+		roomCategoryAdmin := roomCategories.Group("", mw.AuthMiddleware(), mw.ManagerMiddleware())
 		{
 			roomCategoryAdmin.POST("", handlers.RoomCategory.CreateRoomCategory())
 			roomCategoryAdmin.PUT("/:id", handlers.RoomCategory.UpdateRoomCategory())

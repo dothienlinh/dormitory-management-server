@@ -43,22 +43,23 @@ const (
 
 type User struct {
 	Base
-	FullName      string        `json:"full_name"`
-	StudentCode   *string       `json:"student_code"`
-	Email         string        `json:"email"`
-	Password      string        `json:"-"`
-	Role          UserRole      `json:"role"`
-	Gender        UserGender    `json:"gender"`
-	Status        UserStatus    `json:"status"`
-	Phone         string        `json:"phone"`
-	IsVerify      bool          `json:"is_verify"`
-	StatusAccount StatusAccount `json:"status_account"`
-	Birthday      *time.Time    `json:"birthday"`
-	Avatar        *string       `json:"avatar"`
-	RoomID        *uint         `json:"-"`
-	Room          *Room         `json:"room"`
-	Contracts     *[]Contract   `json:"contracts"`
-	Payments      *[]Payment    `json:"payments"`
+	FullName          string              `json:"full_name"`
+	StudentCode       *string             `json:"student_code"`
+	Email             string              `json:"email"`
+	Password          string              `json:"-"`
+	Role              UserRole            `json:"role"`
+	Gender            UserGender          `json:"gender"`
+	Status            UserStatus          `json:"status"`
+	Phone             string              `json:"phone"`
+	IsVerify          bool                `json:"is_verify"`
+	StatusAccount     StatusAccount       `json:"status_account"`
+	Birthday          *time.Time          `json:"birthday"`
+	Avatar            *string             `json:"avatar"`
+	RoomID            *uint               `json:"-"`
+	Room              *Room               `json:"room"`
+	Contracts         *[]Contract         `json:"contracts"`
+	Payments          *[]Payment          `json:"payments"`
+	EmergencyContacts *[]EmergencyContact `json:"emergency_contacts"`
 }
 
 func (User) TableName() string {
@@ -129,6 +130,7 @@ type UserFilter struct {
 	Gender        UserGender    `form:"gender" binding:"omitempty,oneof=male female other"`
 	Role          UserRole      `form:"role" binding:"omitempty,oneof=student staff"`
 	StatusAccount StatusAccount `form:"status_account" binding:"omitempty,oneof=pending approved rejected banned"`
+	HasRoom       *bool         `form:"has_room" binding:"omitempty"`
 	Pagination
 }
 
@@ -158,6 +160,14 @@ func (f UserFilter) Build() (string, []interface{}) {
 	} else {
 		conditions = append(conditions, "role != ?")
 		values = append(values, UserRoleAdmin)
+	}
+
+	if f.HasRoom != nil {
+		if !*f.HasRoom {
+			conditions = append(conditions, "room_id IS NULL")
+		} else if *f.HasRoom {
+			conditions = append(conditions, "room_id IS NOT NULL")
+		}
 	}
 
 	if f.StatusAccount != "" {
@@ -224,4 +234,15 @@ type UserLeavesRoom struct {
 
 type UserStatusAccountUpdate struct {
 	StatusAccount StatusAccount `json:"status_account" binding:"required,oneof=pending approved rejected banned"`
+}
+
+type UserUpdateMe struct {
+	FullName         *string    `json:"full_name" binding:"required"`
+	Phone            *string    `json:"phone" binding:"required"`
+	Birthday         *time.Time `json:"birthday" binding:"omitempty"`
+	Gender           UserGender `json:"gender" binding:"omitempty,oneof=male female other"`
+	EmergencyContact struct {
+		Name  string `json:"name" binding:"required"`
+		Phone string `json:"phone" binding:"required"`
+	} `json:"emergency_contact" binding:"omitempty"`
 }

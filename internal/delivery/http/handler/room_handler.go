@@ -26,7 +26,6 @@ func NewRoomHandler(useCases usecase.UseCases, logger logger.Logger) *RoomHandle
 func (h *RoomHandler) CreateRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("CreateRoom")
 
 		var room entity.CreateRoom
 		if err := c.ShouldBindJSON(&room); err != nil {
@@ -43,7 +42,6 @@ func (h *RoomHandler) CreateRoom() gin.HandlerFunc {
 func (h *RoomHandler) GetRoomByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("GetRoomByID")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -61,7 +59,6 @@ func (h *RoomHandler) GetRoomByID() gin.HandlerFunc {
 func (h *RoomHandler) GetListRooms() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("GetListRooms")
 
 		var filter entity.RoomFilter
 		if err := c.ShouldBindQuery(&filter); err != nil {
@@ -78,7 +75,6 @@ func (h *RoomHandler) GetListRooms() gin.HandlerFunc {
 func (h *RoomHandler) UpdateRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("UpdateRoom")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -103,7 +99,6 @@ func (h *RoomHandler) UpdateRoom() gin.HandlerFunc {
 func (h *RoomHandler) DeleteRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("DeleteRoom")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -133,7 +128,6 @@ func NewRoomCategoryHandler(useCases usecase.UseCases, logger logger.Logger) *Ro
 func (h *RoomCategoryHandler) CreateRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("CreateRoomCategory")
 
 		var category entity.CreateRoomCategory
 		if err := c.ShouldBindJSON(&category); err != nil {
@@ -150,7 +144,6 @@ func (h *RoomCategoryHandler) CreateRoomCategory() gin.HandlerFunc {
 func (h *RoomCategoryHandler) GetRoomCategoryByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("GetRoomCategoryByID")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -168,7 +161,6 @@ func (h *RoomCategoryHandler) GetRoomCategoryByID() gin.HandlerFunc {
 func (h *RoomCategoryHandler) GetListRoomCategories() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("GetListRoomCategories")
 
 		var filter entity.RoomCategoryFilter
 		if err := c.ShouldBindQuery(&filter); err != nil {
@@ -185,7 +177,6 @@ func (h *RoomCategoryHandler) GetListRoomCategories() gin.HandlerFunc {
 func (h *RoomCategoryHandler) UpdateRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("UpdateRoomCategory")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -210,7 +201,6 @@ func (h *RoomCategoryHandler) UpdateRoomCategory() gin.HandlerFunc {
 func (h *RoomCategoryHandler) DeleteRoomCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("DeleteRoomCategory")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {

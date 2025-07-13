@@ -27,4 +27,6 @@ type UserRepository interface {
 	UpdateUserStatusAccount(ctx context.Context, user *entity.User) error
 
 	GetUserByRoles(ctx context.Context, user *entity.User, roles []entity.UserRole) error
+
+	UpdateMe(ctx context.Context, user *entity.User, payload entity.UserUpdateMe) error
 }

@@ -20,4 +20,6 @@ type UserUseCase interface {
 	UserLeavesRoom(ctx context.Context, payload entity.UserLeavesRoom) response.StatusResponse
 
 	UpdateUserStatusAccount(ctx context.Context, userID uint64, statusAccount entity.StatusAccount) response.StatusResponse
+
+	UpdateMe(ctx context.Context, userID uint64, payload entity.UserUpdateMe) response.StatusResponse
 }

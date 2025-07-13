@@ -27,8 +27,6 @@ func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
 
-		h.logger.Info("GetUserByID")
-
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
 			h.logger.Error("Failed to parse user ID", zap.Error(err))
@@ -45,7 +43,6 @@ func (h *UserHandler) GetUserByID() gin.HandlerFunc {
 func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("GetListUsers")
 
 		var filter entity.UserFilter
 		if err := c.ShouldBindQuery(&filter); err != nil {
@@ -62,7 +59,6 @@ func (h *UserHandler) GetListUsers() gin.HandlerFunc {
 func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("UpdateUser")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -87,7 +83,6 @@ func (h *UserHandler) UpdateUser() gin.HandlerFunc {
 func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("DeleteUser")
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 		if err != nil {
@@ -105,7 +100,6 @@ func (h *UserHandler) DeleteUser() gin.HandlerFunc {
 func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("AddUserToRoom")
 
 		var payload entity.AddUserToRoom
 		if err := c.ShouldBindJSON(&payload); err != nil {
@@ -122,7 +116,6 @@ func (h *UserHandler) AddUserToRoom() gin.HandlerFunc {
 func (h *UserHandler) UserLeavesRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("UserLeavesRoom")
 
 		var payload entity.UserLeavesRoom
 
@@ -140,7 +133,6 @@ func (h *UserHandler) UserLeavesRoom() gin.HandlerFunc {
 func (h *UserHandler) UpdateUserStatusAccount() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
-		h.logger.Info("UpdateUserStatusAccount")
 
 		userID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 		if err != nil {
@@ -158,6 +150,28 @@ func (h *UserHandler) UpdateUserStatusAccount() gin.HandlerFunc {
 		}
 
 		resp = h.useCases.User().UpdateUserStatusAccount(ctx, userID, statusAccount.StatusAccount)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *UserHandler) UpdateMe() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		userID, exists := ctx.Get("userID")
+		if !exists {
+			resp = response.Unauthorized("User ID not found")
+			ctx.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		var payload entity.UserUpdateMe
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			h.logger.Error("Failed to bind JSON", zap.Error(err))
+			ctx.Error(err)
+			return
+		}
+
+		resp = h.useCases.User().UpdateMe(ctx, userID.(uint64), payload)
 		ctx.JSON(resp.Status, resp.Response)
 	}
 }

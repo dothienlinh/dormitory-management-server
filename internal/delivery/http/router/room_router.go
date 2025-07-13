@@ -13,7 +13,7 @@ func SetupRoomRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *mi
 		rooms.GET("", handlers.Room.GetListRooms())
 		rooms.GET("/:id", handlers.Room.GetRoomByID())
 
-		roomsAdmin := rooms.Group("", mw.AuthMiddleware(), mw.AdminMiddleware())
+		roomsAdmin := rooms.Group("", mw.AuthMiddleware(), mw.ManagerMiddleware())
 		{
 			roomsAdmin.POST("", handlers.Room.CreateRoom())
 			roomsAdmin.PUT("/:id", handlers.Room.UpdateRoom())

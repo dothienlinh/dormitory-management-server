@@ -10,7 +10,7 @@ import (
 func SetupMaintenanceHistoryRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *middleware.Middleware) {
 	maintenanceHistory := router.Group("/maintenance-histories")
 
-	maintenanceHistoryAdmin := maintenanceHistory.Group("", mw.AuthMiddleware(), mw.AdminMiddleware())
+	maintenanceHistoryAdmin := maintenanceHistory.Group("", mw.AuthMiddleware(), mw.ManagerMiddleware())
 	{
 		maintenanceHistoryAdmin.POST("", handlers.MaintenanceHistory.Create())
 		maintenanceHistoryAdmin.GET("/:id", handlers.MaintenanceHistory.Detail())

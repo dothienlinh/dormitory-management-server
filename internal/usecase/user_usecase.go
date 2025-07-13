@@ -134,3 +134,21 @@ func (uc *userUseCase) UpdateUserStatusAccount(ctx context.Context, userID uint6
 
 	return response.Success("User status account updated successfully", 0)
 }
+
+func (uc *userUseCase) UpdateMe(ctx context.Context, userID uint64, payload entity.UserUpdateMe) response.StatusResponse {
+	user := &entity.User{
+		Base: entity.Base{ID: userID},
+	}
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
+		uc.logger.Error("Failed to get user for update", zap.Error(err))
+		return response.NotFound(fmt.Sprintf("User with ID %d not found", userID))
+	}
+
+	if err := uc.repos.User().UpdateMe(ctx, user, payload); err != nil {
+		uc.logger.Error("Failed to update user", zap.Error(err))
+		return response.InternalServerError("Failed to update user")
+	}
+
+	return response.Success(user, 0)
+
+}

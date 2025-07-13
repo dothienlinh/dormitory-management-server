@@ -12,7 +12,7 @@ func SetupAmenityRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw 
 	{
 		amenities.GET("", handlers.Amenity.List())
 
-		amenitiesAdmin := amenities.Group("", mw.AuthMiddleware(), mw.AdminMiddleware())
+		amenitiesAdmin := amenities.Group("", mw.AuthMiddleware(), mw.ManagerMiddleware())
 		{
 			amenitiesAdmin.POST("", handlers.Amenity.Create())
 			amenitiesAdmin.PUT("/:id", handlers.Amenity.Update())
