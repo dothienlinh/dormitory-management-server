@@ -8,6 +8,7 @@ import (
 	"dormitory_management/pkg/logger"
 	"flag"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -24,12 +25,12 @@ func main() {
 		log.Fatal("Failed to connect to database", err)
 	}
 
-	tableFlags := flag.String("tables", "", "Comma-separated list of tables to seed (e.g., 'amenities,room_categories')")
+	tableFlags := flag.String("tables", "", "Comma-separated list of tables to seed (e.g., 'amenities,room_categories,notifications,events,service_requests')")
 	flag.Parse()
 
 	tableStrings := *tableFlags
 	if tableStrings == "" {
-		log.Fatal("No tables specified for seeding. Use the -tables flag to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories", flag.CommandLine.Name()))
+		log.Fatal("No tables specified for seeding. Use the -tables flag to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests", flag.CommandLine.Name()))
 	}
 
 	log.Info("Seeding tables...")
@@ -43,8 +44,20 @@ func main() {
 		if err := seedRoomCategories(context, db); err != nil {
 			log.Fatal("Failed to seed room categories", err)
 		}
+	case entity.Notification{}.TableName():
+		if err := seedNotifications(context, db); err != nil {
+			log.Fatal("Failed to seed notifications", err)
+		}
+	case entity.Event{}.TableName():
+		if err := seedEvents(context, db); err != nil {
+			log.Fatal("Failed to seed events", err)
+		}
+	case entity.ServiceRequest{}.TableName():
+		if err := seedServiceRequests(context, db); err != nil {
+			log.Fatal("Failed to seed service requests", err)
+		}
 	default:
-		log.Fatal("Invalid table specified. Use -tables=amenities,room_categories to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories", flag.CommandLine.Name()))
+		log.Fatal("Invalid table specified. Use -tables=amenities,room_categories,notifications,events,service_requests to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests", flag.CommandLine.Name()))
 	}
 
 	log.Info("Seeding completed successfully")
@@ -71,4 +84,175 @@ func seedRoomCategories(ctx context.Context, db *gorm.DB) error {
 	}
 
 	return db.WithContext(ctx).Table(entity.RoomCategory{}.TableName()).Create(&roomCategories).Error
+}
+
+func seedNotifications(ctx context.Context, db *gorm.DB) error {
+	// Get a sample user ID (assuming there's at least one user)
+	var userID uint64
+	if err := db.WithContext(ctx).Model(&entity.User{}).Select("id").Where("role = ?", entity.UserRoleStudent).First(&userID).Error; err != nil {
+		return fmt.Errorf("no student user found to create notifications: %w", err)
+	}
+
+	notifications := []entity.Notification{
+		{
+			Title:    "Thông báo thanh toán tiền phòng tháng 12",
+			Content:  "Vui lòng thanh toán tiền phòng tháng 12 trước ngày 25/12/2023. Số tiền: 2,500,000 VND",
+			Type:     entity.NotificationTypePayment,
+			Priority: entity.NotificationPriorityHigh,
+			UserID:   userID,
+			IsRead:   false,
+		},
+		{
+			Title:    "Bảo trì hệ thống điện",
+			Content:  "Hệ thống điện tòa A sẽ được bảo trì vào ngày 20/12/2023 từ 8:00-12:00",
+			Type:     entity.NotificationTypeMaintenance,
+			Priority: entity.NotificationPriorityMedium,
+			UserID:   userID,
+			IsRead:   true,
+		},
+		{
+			Title:    "Lễ hội cuối năm KTX",
+			Content:  "Tham gia lễ hội cuối năm KTX vào ngày 23/12/2023 tại sân chính",
+			Type:     entity.NotificationTypeEvent,
+			Priority: entity.NotificationPriorityLow,
+			UserID:   userID,
+			IsRead:   false,
+		},
+		{
+			Title:    "Yêu cầu sửa chữa đã được xử lý",
+			Content:  "Yêu cầu sửa chữa đèn phòng A304 đã được hoàn thành",
+			Type:     entity.NotificationTypeService,
+			Priority: entity.NotificationPriorityMedium,
+			UserID:   userID,
+			IsRead:   false,
+		},
+		{
+			Title:    "Thông báo quy định mới",
+			Content:  "KTX có quy định mới về giờ giấc sinh hoạt, vui lòng xem chi tiết",
+			Type:     entity.NotificationTypeAnnouncement,
+			Priority: entity.NotificationPriorityMedium,
+			UserID:   userID,
+			IsRead:   true,
+		},
+	}
+
+	return db.WithContext(ctx).Create(&notifications).Error
+}
+
+func seedEvents(ctx context.Context, db *gorm.DB) error {
+	now := time.Now()
+	events := []entity.Event{
+		{
+			Title:       "Hạn nộp tiền phòng tháng 12",
+			Description: "Hạn cuối cùng nộp tiền phòng tháng 12",
+			EventDate:   now.AddDate(0, 0, 10), // 10 ngày từ bây giờ
+			StartTime:   "08:00",
+			EndTime:     "17:00",
+			Location:    "Phòng kế toán - Tầng 1",
+			Type:        entity.EventTypeDeadline,
+			IsMandatory: true,
+			Organizer:   "Ban quản lý KTX",
+		},
+		{
+			Title:       "Bảo trì hệ thống nước",
+			Description: "Bảo trì và vệ sinh bồn nước các tòa nhà",
+			EventDate:   now.AddDate(0, 0, 5), // 5 ngày từ bây giờ
+			StartTime:   "08:00",
+			EndTime:     "16:00",
+			Location:    "Tất cả các tòa nhà",
+			Type:        entity.EventTypeMaintenance,
+			IsMandatory: false,
+			Organizer:   "Phòng kỹ thuật",
+		},
+		{
+			Title:       "Họp sinh viên đầu tháng",
+			Description: "Họp tổng kết tháng và thông báo các hoạt động sắp tới",
+			EventDate:   now.AddDate(0, 0, 2), // 2 ngày từ bây giờ
+			StartTime:   "19:00",
+			EndTime:     "21:00",
+			Location:    "Hội trường tầng 1",
+			Type:        entity.EventTypeMeeting,
+			IsMandatory: true,
+			Organizer:   "Ban sinh viên KTX",
+		},
+		{
+			Title:       "Đêm nhạc Giáng sinh",
+			Description: "Chương trình văn nghệ chào mừng Giáng sinh",
+			EventDate:   now.AddDate(0, 0, 8), // 8 ngày từ bây giờ
+			StartTime:   "20:00",
+			EndTime:     "22:00",
+			Location:    "Sân chính KTX",
+			Type:        entity.EventTypeEvent,
+			IsMandatory: false,
+			Organizer:   "Đoàn thanh niên KTX",
+		},
+		{
+			Title:       "Kiểm tra an toàn PCCC",
+			Description: "Kiểm tra hệ thống phòng cháy chữa cháy định kỳ",
+			EventDate:   now.AddDate(0, 0, 15), // 15 ngày từ bây giờ
+			StartTime:   "08:00",
+			EndTime:     "12:00",
+			Location:    "Tất cả các tòa nhà",
+			Type:        entity.EventTypeMaintenance,
+			IsMandatory: false,
+			Organizer:   "Phòng an ninh",
+		},
+	}
+
+	return db.WithContext(ctx).Create(&events).Error
+}
+
+func seedServiceRequests(ctx context.Context, db *gorm.DB) error {
+	// Get a sample user ID (assuming there's at least one user)
+	var userID uint64
+	if err := db.WithContext(ctx).Model(&entity.User{}).Select("id").Where("role = ?", entity.UserRoleStudent).First(&userID).Error; err != nil {
+		return fmt.Errorf("no student user found to create service requests: %w", err)
+	}
+
+	now := time.Now()
+	serviceRequests := []entity.ServiceRequest{
+		{
+			Title:          "Sửa chữa đèn phòng A304",
+			Description:    "Đèn trong phòng bị hỏng, không sáng được",
+			Category:       "Điện",
+			Priority:       entity.ServiceRequestPriorityHigh,
+			Status:         entity.ServiceRequestStatusCompleted,
+			UserID:         userID,
+			CompletionDate: &now,
+		},
+		{
+			Title:       "Thay ổ khóa cửa phòng",
+			Description: "Ổ khóa cửa phòng bị kẹt, khó mở",
+			Category:    "Cơ khí",
+			Priority:    entity.ServiceRequestPriorityMedium,
+			Status:      entity.ServiceRequestStatusPending,
+			UserID:      userID,
+		},
+		{
+			Title:       "Sửa chữa vòi nước",
+			Description: "Vòi nước trong toilet bị rò rỉ",
+			Category:    "Nước",
+			Priority:    entity.ServiceRequestPriorityMedium,
+			Status:      entity.ServiceRequestStatusInProgress,
+			UserID:      userID,
+		},
+		{
+			Title:       "Thay bóng đèn hành lang",
+			Description: "Bóng đèn hành lang tầng 3 bị cháy",
+			Category:    "Điện",
+			Priority:    entity.ServiceRequestPriorityLow,
+			Status:      entity.ServiceRequestStatusApproved,
+			UserID:      userID,
+		},
+		{
+			Title:       "Sửa chữa điều hòa",
+			Description: "Điều hòa không hoạt động, không làm lạnh",
+			Category:    "Điện",
+			Priority:    entity.ServiceRequestPriorityHigh,
+			Status:      entity.ServiceRequestStatusPending,
+			UserID:      userID,
+		},
+	}
+
+	return db.WithContext(ctx).Create(&serviceRequests).Error
 }

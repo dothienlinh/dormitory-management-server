@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -323,13 +322,7 @@ func (uc *authUseCase) VerifyAccount(ctx context.Context, payload entity.VerifyA
 		return response.BadRequest("User already verified")
 	}
 
-	unescapeToken, err := url.QueryUnescape(payload.Token)
-	if err != nil {
-		uc.logger.Error("Failed to unescape token", zap.Error(err))
-		return response.InternalServerError(err.Error())
-	}
-
-	tokenDecrypt, err := helper.Decrypt(unescapeToken, uc.config.Server.SecretKey)
+	tokenDecrypt, err := helper.Decrypt(payload.Token, uc.config.Server.SecretKey)
 	if err != nil {
 		uc.logger.Error("Failed to decrypt token", zap.Error(err))
 		return response.BadRequest(err.Error())
