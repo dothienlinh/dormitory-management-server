@@ -24,7 +24,7 @@ type repositories struct {
 func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Repositories {
 	repos := &repositories{}
 
-	repos.user = NewUserRepository(db)
+	repos.user = NewUserRepository(db, redisClient)
 	repos.room = NewRoomRepository(db)
 	repos.roomCategory = NewRoomCategoryRepository(db)
 	repos.contract = NewContractRepository(db)

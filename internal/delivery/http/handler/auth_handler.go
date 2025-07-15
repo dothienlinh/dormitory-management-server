@@ -78,7 +78,7 @@ func (h *AuthHandler) Logout() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("Logout")
 
-		userID, exists := c.Get("userID")
+		userID, exists := c.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			c.JSON(resp.Status, resp.Response)
@@ -95,7 +95,7 @@ func (h *AuthHandler) Me() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("Me")
 
-		userID, exists := c.Get("userID")
+		userID, exists := c.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			c.JSON(resp.Status, resp.Response)
@@ -180,7 +180,7 @@ func (h *AuthHandler) ChangePassword() gin.HandlerFunc {
 		var resp response.StatusResponse
 		h.logger.Info("ChangePassword")
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)

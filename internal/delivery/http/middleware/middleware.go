@@ -207,14 +207,14 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 }
 
 func (m *Middleware) setUserInContext(c *gin.Context, user *entity.User) {
-	c.Set("userID", user.ID)
-	c.Set("userRole", user.Role)
-	c.Set("userEmail", user.Email)
+	c.Set("user_id", user.ID)
+	c.Set("user_role", user.Role)
+	c.Set("user_email", user.Email)
 }
 
 func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("userRole")
+		role, exists := c.Get("user_role")
 		if !exists {
 			resp := response.Unauthorized("User role not found")
 			c.JSON(resp.Status, resp.Response)
@@ -235,7 +235,7 @@ func (m *Middleware) AdminMiddleware() gin.HandlerFunc {
 
 func (m *Middleware) StaffMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("userRole")
+		role, exists := c.Get("user_role")
 		if !exists {
 			resp := response.Unauthorized("User role not found")
 			c.JSON(resp.Status, resp.Response)
@@ -256,7 +256,7 @@ func (m *Middleware) StaffMiddleware() gin.HandlerFunc {
 
 func (m *Middleware) StudentMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("userRole")
+		role, exists := c.Get("user_role")
 		if !exists {
 			resp := response.Unauthorized("User role not found")
 			c.JSON(resp.Status, resp.Response)
@@ -277,7 +277,7 @@ func (m *Middleware) StudentMiddleware() gin.HandlerFunc {
 
 func (m *Middleware) ManagerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("userRole")
+		role, exists := c.Get("user_role")
 		if !exists {
 			resp := response.Unauthorized("User role not found")
 			c.JSON(resp.Status, resp.Response)

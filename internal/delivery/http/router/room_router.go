@@ -20,4 +20,24 @@ func SetupRoomRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw *mi
 			roomsAdmin.DELETE("/:id", handlers.Room.DeleteRoom())
 		}
 	}
+
+	// Student Room Routes
+	studentRoom := router.Group("/student/room", mw.AuthMiddleware())
+	{
+		studentRoom.GET("/details", handlers.Room.GetStudentRoomDetails())
+		studentRoom.GET("/stats", handlers.Room.GetRoomStats())
+		studentRoom.GET("/roommates", handlers.Room.GetRoommates())
+
+		// Room Issues
+		studentRoom.GET("/issues", handlers.Room.GetRoomIssues())
+		studentRoom.POST("/issues", handlers.Room.CreateRoomIssue())
+		studentRoom.GET("/issues/:issueId", handlers.Room.GetRoomIssueDetails())
+
+		// Room Bills
+		studentRoom.GET("/bills", handlers.Room.GetRoomBills())
+
+		// Room Rules and Cleaning
+		studentRoom.GET("/rules", handlers.Room.GetRoomRules())
+		studentRoom.GET("/cleaning-schedule", handlers.Room.GetCleaningSchedule())
+	}
 }

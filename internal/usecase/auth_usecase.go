@@ -19,7 +19,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -128,21 +127,7 @@ func (uc *authUseCase) Me(ctx context.Context, userID uint64) response.StatusRes
 	user := &entity.User{
 		Base: entity.Base{ID: userID},
 	}
-	if err := uc.repos.Auth().GetUserCache(ctx, user); errors.Is(err, redis.Nil) {
-		uc.logger.Info("User not found in cache, fetching from database")
-		if err := uc.repos.User().GetByID(ctx, user); err != nil {
-			uc.logger.Error("User not found", zap.Error(err))
-			return response.Unauthorized("User not found")
-		}
-
-		err = uc.repos.Auth().SetUserCache(ctx, user, uc.config.JWT.AccessExpiresIn)
-		if err != nil {
-			uc.logger.Error("Failed to set user cache", zap.Error(err))
-			return response.InternalServerError("Failed to set user cache")
-		}
-
-		return response.Success(user, 1)
-	} else if err != nil {
+	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("User not found", zap.Error(err))
 		return response.Unauthorized("User not found")
 	}
@@ -270,6 +255,11 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 }
 
 func (uc *authUseCase) Logout(ctx context.Context, userID uint64) response.StatusResponse {
+	if err := uc.repos.Auth().DeleteUserCache(ctx, userID); err != nil {
+		uc.logger.Error("Failed to delete user cache", zap.Error(err))
+		return response.InternalServerError("Failed to logout")
+	}
+
 	if err := uc.repos.Auth().InvalidateToken(ctx, entity.AccessToken, userID); err != nil {
 		uc.logger.Error("Failed to invalidate token", zap.Error(err))
 		return response.InternalServerError("Failed to logout")
@@ -277,11 +267,6 @@ func (uc *authUseCase) Logout(ctx context.Context, userID uint64) response.Statu
 
 	if err := uc.repos.Auth().InvalidateToken(ctx, entity.RefreshToken, userID); err != nil {
 		uc.logger.Error("Failed to invalidate token", zap.Error(err))
-		return response.InternalServerError("Failed to logout")
-	}
-
-	if err := uc.repos.Auth().DeleteUserCache(ctx, userID); err != nil {
-		uc.logger.Error("Failed to delete user cache", zap.Error(err))
 		return response.InternalServerError("Failed to logout")
 	}
 

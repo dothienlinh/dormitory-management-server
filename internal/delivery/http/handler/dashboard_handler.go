@@ -34,7 +34,7 @@ func (h *DashboardHandler) StudentOverview() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)
@@ -51,7 +51,7 @@ func (h *DashboardHandler) GetNotifications() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)
@@ -80,7 +80,7 @@ func (h *DashboardHandler) MarkNotificationAsRead() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)
@@ -105,7 +105,7 @@ func (h *DashboardHandler) MarkAllNotificationsAsRead() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)
@@ -142,7 +142,7 @@ func (h *DashboardHandler) GetServiceRequests() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)
@@ -165,7 +165,7 @@ func (h *DashboardHandler) GetQuickStats() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)

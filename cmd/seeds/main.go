@@ -25,12 +25,12 @@ func main() {
 		log.Fatal("Failed to connect to database", err)
 	}
 
-	tableFlags := flag.String("tables", "", "Comma-separated list of tables to seed (e.g., 'amenities,room_categories,notifications,events,service_requests')")
+	tableFlags := flag.String("tables", "", "Comma-separated list of tables to seed (e.g., 'amenities,room_categories,notifications,events,service_requests,room_rules,cleaning_schedules')")
 	flag.Parse()
 
 	tableStrings := *tableFlags
 	if tableStrings == "" {
-		log.Fatal("No tables specified for seeding. Use the -tables flag to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests", flag.CommandLine.Name()))
+		log.Fatal("No tables specified for seeding. Use the -tables flag to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests,room_rules,cleaning_schedules", flag.CommandLine.Name()))
 	}
 
 	log.Info("Seeding tables...")
@@ -56,8 +56,16 @@ func main() {
 		if err := seedServiceRequests(context, db); err != nil {
 			log.Fatal("Failed to seed service requests", err)
 		}
+	case entity.RoomRule{}.TableName():
+		if err := seedRoomRules(context, db); err != nil {
+			log.Fatal("Failed to seed room rules", err)
+		}
+	case entity.CleaningSchedule{}.TableName():
+		if err := seedCleaningSchedules(context, db); err != nil {
+			log.Fatal("Failed to seed cleaning schedules", err)
+		}
 	default:
-		log.Fatal("Invalid table specified. Use -tables=amenities,room_categories,notifications,events,service_requests to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests", flag.CommandLine.Name()))
+		log.Fatal("Invalid table specified. Use -tables=amenities,room_categories,notifications,events,service_requests,room_rules,cleaning_schedules to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests,room_rules,cleaning_schedules", flag.CommandLine.Name()))
 	}
 
 	log.Info("Seeding completed successfully")
@@ -255,4 +263,101 @@ func seedServiceRequests(ctx context.Context, db *gorm.DB) error {
 	}
 
 	return db.WithContext(ctx).Create(&serviceRequests).Error
+}
+
+func seedRoomRules(ctx context.Context, db *gorm.DB) error {
+	roomRules := []entity.RoomRule{
+		{
+			Title:       "Giờ giấc tự do",
+			Description: "Giờ giấc tự do, không quy định đóng cửa",
+			Category:    "general",
+			Priority:    1,
+			IsActive:    true,
+		},
+		{
+			Title:       "Không mang thú cưng",
+			Description: "Không được mang thú cưng vào phòng",
+			Category:    "general",
+			Priority:    2,
+			IsActive:    true,
+		},
+		{
+			Title:       "Giữ gìn vệ sinh",
+			Description: "Giữ gìn vệ sinh chung, không xả rác bừa bãi",
+			Category:    "hygiene",
+			Priority:    1,
+			IsActive:    true,
+		},
+		{
+			Title:       "Báo cáo sự cố an ninh",
+			Description: "Báo ngay cho bảo vệ khi phát hiện sự cố về an ninh trật tự",
+			Category:    "safety",
+			Priority:    1,
+			IsActive:    true,
+		},
+		{
+			Title:       "Tham gia họp tổ",
+			Description: "Tham gia đầy đủ các buổi họp tổ dân phố định kỳ",
+			Category:    "behavior",
+			Priority:    3,
+			IsActive:    true,
+		},
+	}
+
+	return db.WithContext(ctx).Create(&roomRules).Error
+}
+
+func seedCleaningSchedules(ctx context.Context, db *gorm.DB) error {
+	cleaningSchedules := []entity.CleaningSchedule{
+		{
+			RoomID:    nil, // applies to all rooms
+			DayOfWeek: "monday",
+			StartTime: "08:00",
+			EndTime:   "10:00",
+			Type:      "regular",
+			IsActive:  true,
+		},
+		{
+			RoomID:    nil,
+			DayOfWeek: "tuesday",
+			StartTime: "10:00",
+			EndTime:   "12:00",
+			Type:      "regular",
+			IsActive:  true,
+		},
+		{
+			RoomID:    nil,
+			DayOfWeek: "wednesday",
+			StartTime: "08:00",
+			EndTime:   "10:00",
+			Type:      "regular",
+			IsActive:  true,
+		},
+		{
+			RoomID:    nil,
+			DayOfWeek: "thursday",
+			StartTime: "10:00",
+			EndTime:   "12:00",
+			Type:      "regular",
+			IsActive:  true,
+		},
+		{
+			RoomID:    nil,
+			DayOfWeek: "friday",
+			StartTime: "08:00",
+			EndTime:   "10:00",
+			Type:      "regular",
+			IsActive:  true,
+		},
+		{
+			RoomID:    nil,
+			DayOfWeek: "saturday",
+			StartTime: "09:00",
+			EndTime:   "12:00",
+			Type:      "deep",
+			IsActive:  true,
+		},
+	}
+
+	return db.WithContext(ctx).Create(&cleaningSchedules).Error
 }

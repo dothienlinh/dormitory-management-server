@@ -157,7 +157,7 @@ func (h *UserHandler) UpdateUserStatusAccount() gin.HandlerFunc {
 func (h *UserHandler) UpdateMe() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
-		userID, exists := ctx.Get("userID")
+		userID, exists := ctx.Get("user_id")
 		if !exists {
 			resp = response.Unauthorized("User ID not found")
 			ctx.JSON(resp.Status, resp.Response)

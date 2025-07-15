@@ -4,6 +4,7 @@ import (
 	"context"
 	"dormitory_management/internal/domain/entity"
 	"dormitory_management/internal/domain/repository"
+	"dormitory_management/internal/infra/cache"
 	"errors"
 	"fmt"
 
@@ -11,12 +12,14 @@ import (
 )
 
 type userRepository struct {
-	db *gorm.DB
+	db    *gorm.DB
+	redis *cache.RedisClient
 }
 
-func NewUserRepository(db *gorm.DB) repository.UserRepository {
+func NewUserRepository(db *gorm.DB, redisClient *cache.RedisClient) repository.UserRepository {
 	return &userRepository{
-		db: db,
+		db:    db,
+		redis: redisClient,
 	}
 }
 
@@ -117,6 +120,10 @@ func (r *userRepository) AddUserToRoom(ctx context.Context, payload entity.AddUs
 
 	if err := r.db.WithContext(ctx).Table(entity.User{}.TableName()).Where("id = ?", payload.UserID).Update("room_id", room.ID).Error; err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	if err := r.redis.Del(ctx, fmt.Sprintf("user:%d", payload.UserID)); err != nil {
+		return fmt.Errorf("failed to delete user cache: %w", err)
 	}
 
 	return nil
