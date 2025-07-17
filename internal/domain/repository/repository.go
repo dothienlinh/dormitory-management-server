@@ -12,4 +12,5 @@ type Repositories interface {
 	Amenities() AmenitiesRepository
 	MaintenanceHistory() MaintenanceHistoryRepository
 	Payment() PaymentRepository
+	Bill() BillRepository
 }

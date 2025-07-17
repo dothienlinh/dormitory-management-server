@@ -139,6 +139,10 @@ func main() {
 		return consumer.AuthTask().SendEmailForgotPassword(ctx, t)
 	})
 
+	mux.HandleFunc(string(tasks.TaskSendEmailBill), func(ctx context.Context, t *asynq.Task) error {
+		return consumer.EmailTask().SendEmailBill(ctx, t)
+	})
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 

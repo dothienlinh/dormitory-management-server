@@ -21,3 +21,16 @@ type SendMailForgotPassword struct {
 	Email  string `json:"email" binding:"required,email"`
 	Code   string `json:"code" binding:"required,len=6"`
 }
+
+type CompanyInfo struct {
+	Name    string
+	Address string
+	Phone   string
+	Email   string
+	Website string
+}
+
+type BillEmailData struct {
+	Bill    Bill        `json:"bill"`
+	Company CompanyInfo `json:"company"`
+}

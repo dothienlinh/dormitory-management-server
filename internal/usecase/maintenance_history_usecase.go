@@ -41,7 +41,7 @@ func (uc *maintenanceHistoryUsecase) Create(ctx context.Context, payload *entity
 }
 
 func (uc *maintenanceHistoryUsecase) Detail(ctx context.Context, id uint64) response.StatusResponse {
-	history := &entity.MaintenanceHistory{Base: entity.Base{ID: id}}
+	history := &entity.MaintenanceHistory{ID: id}
 
 	if err := uc.repos.MaintenanceHistory().Detail(ctx, history); err != nil {
 		uc.logger.Error("Failed to get maintenance history detail", zap.Error(err))
@@ -55,7 +55,7 @@ func (uc *maintenanceHistoryUsecase) Detail(ctx context.Context, id uint64) resp
 }
 
 func (uc *maintenanceHistoryUsecase) Update(ctx context.Context, id uint64) response.StatusResponse {
-	history := &entity.MaintenanceHistory{Base: entity.Base{ID: id}}
+	history := &entity.MaintenanceHistory{ID: id}
 
 	if err := uc.repos.MaintenanceHistory().Detail(ctx, history); err != nil {
 		uc.logger.Error("Failed to get maintenance history detail", zap.Error(err))
@@ -74,7 +74,7 @@ func (uc *maintenanceHistoryUsecase) Update(ctx context.Context, id uint64) resp
 }
 
 func (uc *maintenanceHistoryUsecase) Delete(ctx context.Context, id uint64) response.StatusResponse {
-	history := &entity.MaintenanceHistory{Base: entity.Base{ID: id}}
+	history := &entity.MaintenanceHistory{ID: id}
 
 	if err := uc.repos.MaintenanceHistory().Detail(ctx, history); err != nil {
 		uc.logger.Error("Failed to get maintenance history detail", zap.Error(err))

@@ -1,5 +1,11 @@
 package entity
 
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
 type PaymentMethod string
 
 const (
@@ -17,21 +23,24 @@ const (
 )
 
 type Payment struct {
-	Base
-	UserId         uint64         `json:"user_id"`
-	Amount         int            `json:"amount"`
-	Currency       string         `json:"currency"`
-	PaymentMethod  PaymentMethod  `json:"payment_method"`
-	PaymentChannel PaymentChannel `json:"payment_channel"`
-	TransactionId  *string        `json:"transaction_id"`
-	Bin            string         `json:"bin"`
-	AccountNumber  string         `json:"accountNumber"`
-	AccountName    string         `json:"accountName"`
-	Description    string         `json:"description"`
-	OrderCode      int64          `json:"orderCode"`
-	PaymentLinkId  string         `json:"paymentLinkId"`
-	Status         string         `json:"status"`
-	ExpiredAt      *int           `json:"expiredAt"`
+	ID             uint64         `json:"id" gorm:"primaryKey;autoIncrement"`
+	CreatedAt      time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt      time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt      gorm.DeletedAt `json:"-" gorm:"index"`
+	UserId         uint64         `json:"user_id" gorm:"not null;index"`
+	Amount         int            `json:"amount" gorm:"not null"`
+	Currency       string         `json:"currency" gorm:"not null;default:'VND'"`
+	PaymentMethod  PaymentMethod  `json:"payment_method" gorm:"type:varchar(20);not null"`
+	PaymentChannel PaymentChannel `json:"payment_channel" gorm:"type:varchar(20);not null"`
+	TransactionId  *string        `json:"transaction_id" gorm:"uniqueIndex"`
+	Bin            string         `json:"bin" gorm:"not null"`
+	AccountNumber  string         `json:"account_number" gorm:"not null"`
+	AccountName    string         `json:"account_name" gorm:"not null"`
+	Description    string         `json:"description" gorm:"type:text"`
+	OrderCode      int64          `json:"order_code" gorm:"not null"`
+	PaymentLinkId  string         `json:"payment_link_id" gorm:"not null"`
+	Status         string         `json:"status" gorm:"type:varchar(20);not null;default:'pending'"`
+	ExpiredAt      *int           `json:"expired_at"`
 }
 
 func (Payment) TableName() string {

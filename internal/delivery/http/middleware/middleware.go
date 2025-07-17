@@ -154,11 +154,7 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		user := &entity.User{
-			Base: entity.Base{
-				ID: claims.UserID,
-			},
-		}
+		user := &entity.User{ID: claims.UserID}
 		if err := m.repos.Auth().GetUserCache(c, user); errors.Is(err, redis.Nil) {
 			if err := m.repos.User().GetByID(c, user); err != nil {
 				resp := response.Unauthorized(err.Error())

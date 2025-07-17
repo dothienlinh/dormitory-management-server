@@ -36,11 +36,7 @@ func NewPaymentUseCase(repos repository.Repositories, logger logger.Logger, asyn
 
 func (uc *paymentUseCase) CreateLinkPaymentVietQR(ctx context.Context, payload *entity.CreateLinkPaymentVietQR) response.StatusResponse {
 
-	user := &entity.User{
-		Base: entity.Base{
-			ID: payload.UserID,
-		},
-	}
+	user := &entity.User{ID: payload.UserID}
 
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user by ID", zap.Error(err))
@@ -95,4 +91,23 @@ func (uc *paymentUseCase) CreateLinkPaymentVietQR(ctx context.Context, payload *
 	uc.asynqClient.EnqueueContext(ctx, task)
 
 	return response.Success(data.CheckoutUrl, 0)
+}
+
+func (uc *paymentUseCase) ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType) error {
+	bill := entity.Bill{}
+	if err := uc.repos.Payment().ReceiveHookVietQR(ctx, webhookData, bill); err != nil {
+		uc.logger.Error("Failed to receive hook vietqr", zap.Error(err))
+		return err
+	}
+
+	jsonPayload, err := json.Marshal(&bill)
+	if err != nil {
+		uc.logger.Error("Failed to marshal payload", zap.Error(err))
+		return err
+	}
+
+	task := asynq.NewTask(string(tasks.TaskSendEmailBill), jsonPayload)
+	uc.asynqClient.EnqueueContext(ctx, task)
+
+	return nil
 }

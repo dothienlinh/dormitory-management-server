@@ -53,7 +53,7 @@ func (uc *amenitiesUseCase) List(ctx context.Context) response.StatusResponse {
 
 func (uc *amenitiesUseCase) Update(ctx context.Context, payload *entity.UpdateAmenity, id uint64) response.StatusResponse {
 	amenities := &entity.Amenity{
-		Base: entity.Base{ID: id},
+		ID: id,
 	}
 
 	if err := uc.repos.Amenities().Detail(ctx, amenities); err != nil {
@@ -76,7 +76,7 @@ func (uc *amenitiesUseCase) Update(ctx context.Context, payload *entity.UpdateAm
 
 func (uc *amenitiesUseCase) Delete(ctx context.Context, id uint64) response.StatusResponse {
 	amenities := &entity.Amenity{
-		Base: entity.Base{ID: id},
+		ID: id,
 	}
 
 	if err := uc.repos.Amenities().Detail(ctx, amenities); err != nil {

@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"bytes"
 	"context"
 	"dormitory_management/internal/common"
 	"dormitory_management/internal/config"
@@ -9,6 +10,7 @@ import (
 	"dormitory_management/pkg/logger"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/url"
 
 	"github.com/hibiken/asynq"
@@ -93,5 +95,63 @@ func (et *EmailTask) SendVerifyAccount(ctx context.Context, t *asynq.Task) error
 		return err
 	}
 
+	return nil
+}
+
+func (et *EmailTask) SendEmailBill(ctx context.Context, t *asynq.Task) error {
+	var payload entity.Bill
+	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		et.logger.Error("could not unmarshal bill payload", zap.Error(err))
+		return err
+	}
+
+	bill := entity.Bill{ID: payload.ID}
+	if err := et.repos.Bill().GetBill(ctx, &bill); err != nil {
+		et.logger.Error("failed to get bill by ID", zap.Error(err))
+		return err
+	}
+
+	user := &entity.User{ID: payload.UserID}
+
+	if err := et.repos.User().GetByID(ctx, user); err != nil {
+		et.logger.Error("failed to get user by ID", zap.Error(err))
+		return err
+	}
+
+	to := []string{user.Email}
+	subject := "Bill"
+	templateEmail, err := template.ParseFiles("internal/templates/email/bill-template.html")
+	if err != nil {
+		et.logger.Error("failed to parse bill template", zap.Error(err))
+		return err
+	}
+	var body bytes.Buffer
+	header := "MIME-Version: 1.0;\r\n"
+	header += "Content-Type: text/html; charset=\"UTF-8\";\r\n"
+	header += "Content-Disposition: inline;\r\n"
+	header += "Content-Transfer-Encoding: 8bit;\r\n"
+	header += "X-Mailer: Go\r\n"
+
+	body.Write([]byte(fmt.Sprintf("Subject: %s\r\n%s\r\n", subject, header)))
+	emailData := entity.BillEmailData{
+		Bill: bill,
+		Company: entity.CompanyInfo{
+			Name:    "Trường cao đẳng Công nghệ Bách khoa Hà Nội",
+			Address: "Số 18-20 Nhân Mỹ - Mỹ Đình 1 - Quận Nam Từ Liêm - TP. Hà Nội",
+			Phone:   "0961224529",
+			Email:   "truyenthong@bachkhoahanoi.edu.vn",
+			Website: "https://bachkhoahanoi.edu.vn",
+		},
+	}
+	templateEmail.Execute(&body, emailData)
+
+	msg := body.Bytes()
+
+	if err := common.SendMail(to, msg, et.config.Email); err != nil {
+		et.logger.Error("failed to send bill email", zap.Error(err))
+		return err
+	}
+
+	et.logger.Info("bill email sent", zap.String("email", user.Email))
 	return nil
 }
