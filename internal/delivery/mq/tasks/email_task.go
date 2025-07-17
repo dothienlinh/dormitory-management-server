@@ -7,6 +7,7 @@ import (
 	"dormitory_management/internal/config"
 	"dormitory_management/internal/domain/entity"
 	"dormitory_management/internal/domain/repository"
+	"dormitory_management/internal/templates"
 	"dormitory_management/pkg/logger"
 	"encoding/json"
 	"fmt"
@@ -119,8 +120,8 @@ func (et *EmailTask) SendEmailBill(ctx context.Context, t *asynq.Task) error {
 	}
 
 	to := []string{user.Email}
-	subject := "Bill"
-	templateEmail, err := template.ParseFiles("internal/templates/email/bill-template.html")
+	subject := "Hóa đơn thanh toán"
+	templateEmail, err := template.New("bill").Parse(templates.BillEmailTemplate)
 	if err != nil {
 		et.logger.Error("failed to parse bill template", zap.Error(err))
 		return err
@@ -143,6 +144,7 @@ func (et *EmailTask) SendEmailBill(ctx context.Context, t *asynq.Task) error {
 			Website: "https://bachkhoahanoi.edu.vn",
 		},
 	}
+	et.logger.Info("bill email data", zap.Any("emailData", emailData))
 	templateEmail.Execute(&body, emailData)
 
 	msg := body.Bytes()

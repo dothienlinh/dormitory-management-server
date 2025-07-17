@@ -9,5 +9,5 @@ import (
 
 type PaymentRepository interface {
 	CreateLinkPaymentVietQR(ctx context.Context, payload *entity.Payment) error
-	ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType, bill entity.Bill) error
+	ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType, bill *entity.Bill) error
 }

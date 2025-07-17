@@ -94,8 +94,11 @@ func (uc *paymentUseCase) CreateLinkPaymentVietQR(ctx context.Context, payload *
 }
 
 func (uc *paymentUseCase) ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType) error {
+	if webhookData.OrderCode == 123 {
+		return nil
+	}
 	bill := entity.Bill{}
-	if err := uc.repos.Payment().ReceiveHookVietQR(ctx, webhookData, bill); err != nil {
+	if err := uc.repos.Payment().ReceiveHookVietQR(ctx, webhookData, &bill); err != nil {
 		uc.logger.Error("Failed to receive hook vietqr", zap.Error(err))
 		return err
 	}
@@ -106,8 +109,10 @@ func (uc *paymentUseCase) ReceiveHookVietQR(ctx context.Context, webhookData *pa
 		return err
 	}
 
-	task := asynq.NewTask(string(tasks.TaskSendEmailBill), jsonPayload)
-	uc.asynqClient.EnqueueContext(ctx, task)
+	if bill.ID != 0 {
+		task := asynq.NewTask(string(tasks.TaskSendEmailBill), jsonPayload)
+		uc.asynqClient.EnqueueContext(ctx, task)
+	}
 
 	return nil
 }

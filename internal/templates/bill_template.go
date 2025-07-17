@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+package templates
+
+const BillEmailTemplate = `<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hóa đơn #{{.ID}}</title>
+    <title>Hóa đơn #{{.Bill.ID}}</title>
     <style>
         * {
             margin: 0;
@@ -352,7 +354,7 @@
         <div class="content">
             <div class="bill-header">
                 <div class="company-info info-section">
-                    <h3>🏢 Thông tin công ty</h3>
+                    <h3>🏢 Thông tin trường</h3>
                     <div class="info-item">
                         <strong>{{.Company.Name}}</strong>
                     </div>
@@ -371,21 +373,21 @@
                 </div>
                 
                 <div class="customer-info info-section">
-                    <h3>👤 Thông tin khách hàng</h3>
+                    <h3>👤 Thông tin sinh viên</h3>
                     <div class="info-item">
-                        <strong>{{.User.Name}}</strong>
+                        <strong>{{.Bill.User.FullName}}</strong>
                     </div>
                     <div class="info-item">
-                        ✉️ {{.User.Email}}
+                        ✉️ {{.Bill.User.Email}}
                     </div>
-                    {{if .User.Phone}}
+                    {{if .Bill.User.Phone}}
                     <div class="info-item">
-                        📞 {{.User.Phone}}
+                        📞 {{.Bill.User.Phone}}
                     </div>
                     {{end}}
-                    {{if .User.Address}}
+                    {{if .Bill.User.Address}}
                     <div class="info-item">
-                        📍 {{.User.Address}}
+                        📍 {{.Bill.User.Address}}
                     </div>
                     {{end}}
                 </div>
@@ -395,27 +397,27 @@
                 <div class="bill-details-grid">
                     <div class="detail-item">
                         <label>Mã hóa đơn</label>
-                        <div class="value">#{{.ID}}</div>
+                        <div class="value">#{{.Bill.ID}}</div>
                     </div>
                     <div class="detail-item">
                         <label>Ngày tạo</label>
-                        <div class="value">{{.CreatedAt.Format "02/01/2006"}}</div>
+                        <div class="value">{{.Bill.CreatedAt.Format "02/01/2006"}}</div>
                     </div>
                     <div class="detail-item">
                         <label>Ngày đến hạn</label>
-                        <div class="value">{{.DueDate.Format "02/01/2006"}}</div>
+                        <div class="value">{{.Bill.DueDate.Format "02/01/2006"}}</div>
                     </div>
                     <div class="detail-item">
                         <label>Trạng thái</label>
                         <div class="value">
-                            {{if eq .Status "PAID"}}
+                            {{if eq .Bill.Status "PAID"}}
                                 <span class="status-badge status-paid">✅ Đã thanh toán</span>
-                            {{else if eq .Status "PENDING"}}
+                            {{else if eq .Bill.Status "PENDING"}}
                                 <span class="status-badge status-pending">⏳ Chờ thanh toán</span>                            
-                            {{else if eq .Status "OVERDUE"}}
+                            {{else if eq .Bill.Status "OVERDUE"}}
                                 <span class="status-badge status-overdue">⚠️ Quá hạn</span>
                             {{else}}
-                                <span class="status-badge status-pending">{{.Status}}</span>
+                                <span class="status-badge status-pending">{{.Bill.Status}}</span>
                             {{end}}
                         </div>
                     </div>
@@ -424,29 +426,29 @@
             
             <div class="amount-section">
                 <h3>💰 Tổng số tiền</h3>
-                <div class="amount">{{printf "%.0f" .Amount}}</div>
+                <div class="amount">{{printf "%.0f" .Bill.Amount}}</div>
                 <div class="amount-currency">VNĐ</div>
             </div>
             
-            {{if .Description}}
+            {{if .Bill.Description}}
             <div class="description-section">
                 <h4>📝 Mô tả dịch vụ</h4>
-                <p>{{.Description}}</p>
+                <p>{{.Bill.Description}}</p>
             </div>
             {{end}}
             
             <div class="payment-info">
                 <h4>💳 Thông tin thanh toán</h4>
-                <p><strong>Phương thức:</strong> {{.Payment.Method}}</p>
+                <p><strong>Phương thức:</strong> {{.Bill.Payment.PaymentMethod}}</p>
                 <p><strong>Trạng thái thanh toán:</strong> 
-                    {{if eq .Payment.Status "completed"}}
+                    {{if eq .Bill.Payment.Status "PAID"}}
                         <span style="color: #28a745;">✅ Hoàn thành</span>
-                    {{else if eq .Payment.Status "pending"}}
+                    {{else if eq .Bill.Payment.Status "PENDING"}}
                         <span style="color: #ffc107;">⏳ Đang xử lý</span>
-                    {{else if eq .Payment.Status "failed"}}
+                    {{else if eq .Bill.Payment.Status "FAILED"}}
                         <span style="color: #dc3545;">❌ Thất bại</span>
                     {{else}}
-                        <span>{{.Payment.Status}}</span>
+                        <span>{{.Bill.Payment.Status}}</span>
                     {{end}}
                 </p>
             </div>
@@ -468,3 +470,4 @@
     </div>
 </body>
 </html>
+`

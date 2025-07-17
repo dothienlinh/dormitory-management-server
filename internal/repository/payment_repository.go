@@ -21,9 +21,9 @@ func (r *paymentRepository) CreateLinkPaymentVietQR(ctx context.Context, payload
 	return r.db.WithContext(ctx).Table(payload.TableName()).Create(payload).Error
 }
 
-func (r *paymentRepository) ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType, bill entity.Bill) error {
+func (r *paymentRepository) ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType, bill *entity.Bill) error {
 	payment := entity.Payment{PaymentLinkId: webhookData.PaymentLinkId}
-	if err := r.db.WithContext(ctx).Table(payment.TableName()).First(&payment).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table(payment.TableName()).Where(&payment).First(&payment).Error; err != nil {
 		return err
 	}
 
@@ -39,10 +39,10 @@ func (r *paymentRepository) ReceiveHookVietQR(ctx context.Context, webhookData *
 		bill.Status = "PAID"
 		bill.Description = payment.Description
 
-		findBill := entity.Bill{PaymentID: payment.ID}
-		if err := tx.WithContext(ctx).Table(findBill.TableName()).First(&findBill).Error; err != nil {
+		findBill := entity.Bill{PaymentID: payment.ID, UserID: payment.UserId}
+		if err := tx.WithContext(ctx).Table(findBill.TableName()).Where(&findBill).First(&findBill).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				if err := tx.WithContext(ctx).Table(bill.TableName()).Create(&bill).Error; err != nil {
+				if err := tx.WithContext(ctx).Table(bill.TableName()).Create(bill).Error; err != nil {
 					return err
 				}
 				return nil

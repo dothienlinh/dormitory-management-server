@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	AppEnv   string
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
@@ -70,6 +71,8 @@ func LoadConfig() *Config {
 		log.Println("No .env file found, using default values")
 	}
 
+	appEnv := getEnv("APP_ENV", "development")
+
 	serverPort := getEnv("SERVER_PORT", "8080")
 	serverMode := getEnv("SERVER_MODE", "debug")
 	serverSecretKey := getEnv("SERVER_SECRET_KEY", "your-secret-key")
@@ -105,6 +108,7 @@ func LoadConfig() *Config {
 	checksumKey := getEnv("PAYOS_CHECKSUM_KEY", "")
 
 	return &Config{
+		AppEnv: appEnv,
 		Server: ServerConfig{
 			Port:      serverPort,
 			Mode:      serverMode,

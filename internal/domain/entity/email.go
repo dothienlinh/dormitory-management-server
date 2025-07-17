@@ -23,11 +23,11 @@ type SendMailForgotPassword struct {
 }
 
 type CompanyInfo struct {
-	Name    string
-	Address string
-	Phone   string
-	Email   string
-	Website string
+	Name    string `json:"name"`
+	Address string `json:"address"`
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+	Website string `json:"website"`
 }
 
 type BillEmailData struct {
