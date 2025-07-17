@@ -19,6 +19,7 @@ type repositories struct {
 	amenities          repository.AmenitiesRepository
 	maintenanceHistory repository.MaintenanceHistoryRepository
 	payment            repository.PaymentRepository
+	bill               repository.BillRepository
 }
 
 func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Repositories {
@@ -35,6 +36,7 @@ func NewRepositories(db *gorm.DB, redisClient *cache.RedisClient) repository.Rep
 	repos.amenities = NewAmenitiesRepository(db)
 	repos.maintenanceHistory = NewMaintenanceHistoryRepository(db)
 	repos.payment = NewPaymentRepository(db)
+	repos.bill = NewBillRepository(db)
 
 	return repos
 }
@@ -81,4 +83,8 @@ func (r *repositories) MaintenanceHistory() repository.MaintenanceHistoryReposit
 
 func (r *repositories) Payment() repository.PaymentRepository {
 	return r.payment
+}
+
+func (r *repositories) Bill() repository.BillRepository {
+	return r.bill
 }

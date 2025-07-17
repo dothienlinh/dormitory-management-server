@@ -124,9 +124,7 @@ func (uc *authUseCase) Register(ctx context.Context, userData *entity.UserRegist
 }
 
 func (uc *authUseCase) Me(ctx context.Context, userID uint64) response.StatusResponse {
-	user := &entity.User{
-		Base: entity.Base{ID: userID},
-	}
+	user := &entity.User{ID: userID}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("User not found", zap.Error(err))
 		return response.Unauthorized("User not found")
@@ -229,9 +227,7 @@ func (uc *authUseCase) RefreshToken(ctx context.Context, refreshToken string) re
 		return response.Unauthorized("Invalid refresh token")
 	}
 
-	user := &entity.User{
-		Base: entity.Base{ID: claims.UserID},
-	}
+	user := &entity.User{ID: claims.UserID}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("User not found", zap.Error(err))
 		return response.Unauthorized("User not found")
@@ -275,7 +271,7 @@ func (uc *authUseCase) Logout(ctx context.Context, userID uint64) response.Statu
 
 func (uc *authUseCase) GenerateTokens(ctx context.Context, userID uint64) (string, string, error) {
 	user := &entity.User{
-		Base: entity.Base{ID: userID},
+		ID: userID,
 	}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		return "", "", errors.New("user not found")
@@ -521,7 +517,7 @@ func (uc *authUseCase) ResetPassword(ctx context.Context, payload entity.ResetPa
 
 func (uc *authUseCase) ChangePassword(ctx context.Context, userID uint64, payload entity.ChangePassword) response.StatusResponse {
 	user := &entity.User{
-		Base: entity.Base{ID: userID},
+		ID: userID,
 	}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("User not found", zap.Error(err))

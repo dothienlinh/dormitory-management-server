@@ -13,4 +13,6 @@ func SetupPaymentRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw 
 	{
 		payments.POST("/vietqr", handlers.PaymentHandler.CreateLinkPaymentVietQR())
 	}
+
+	router.POST("/payments/vietqr/receive-hook", handlers.PaymentHandler.ReceiveHookVietQR())
 }

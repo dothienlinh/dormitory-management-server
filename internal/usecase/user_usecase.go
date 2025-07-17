@@ -25,9 +25,7 @@ func NewUserUseCase(repos repository.Repositories, logger logger.Logger) usecase
 }
 
 func (uc *userUseCase) GetUserByID(ctx context.Context, id uint64) response.StatusResponse {
-	user := &entity.User{
-		Base: entity.Base{ID: id},
-	}
+	user := &entity.User{ID: id}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user by ID", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
@@ -47,9 +45,7 @@ func (uc *userUseCase) GetListUsers(ctx context.Context, filter *entity.UserFilt
 }
 
 func (uc *userUseCase) UpdateUser(ctx context.Context, id uint64, userData *entity.User) response.StatusResponse {
-	user := &entity.User{
-		Base: entity.Base{ID: id},
-	}
+	user := &entity.User{ID: id}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user for update", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
@@ -83,9 +79,7 @@ func (uc *userUseCase) UpdateUser(ctx context.Context, id uint64, userData *enti
 }
 
 func (uc *userUseCase) DeleteUser(ctx context.Context, id uint64) response.StatusResponse {
-	user := &entity.User{
-		Base: entity.Base{ID: id},
-	}
+	user := &entity.User{ID: id}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user for deletion", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", id))
@@ -118,9 +112,7 @@ func (uc *userUseCase) UserLeavesRoom(ctx context.Context, payload entity.UserLe
 }
 
 func (uc *userUseCase) UpdateUserStatusAccount(ctx context.Context, userID uint64, statusAccount entity.StatusAccount) response.StatusResponse {
-	user := &entity.User{
-		Base: entity.Base{ID: userID},
-	}
+	user := &entity.User{ID: userID}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user by ID", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", userID))
@@ -136,9 +128,7 @@ func (uc *userUseCase) UpdateUserStatusAccount(ctx context.Context, userID uint6
 }
 
 func (uc *userUseCase) UpdateMe(ctx context.Context, userID uint64, payload entity.UserUpdateMe) response.StatusResponse {
-	user := &entity.User{
-		Base: entity.Base{ID: userID},
-	}
+	user := &entity.User{ID: userID}
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user for update", zap.Error(err))
 		return response.NotFound(fmt.Sprintf("User with ID %d not found", userID))

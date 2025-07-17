@@ -42,24 +42,27 @@ const (
 )
 
 type User struct {
-	Base
-	FullName          string              `json:"full_name"`
+	ID                uint64              `json:"id" gorm:"primarykey"`
+	CreatedAt         time.Time           `json:"created_at"`
+	UpdatedAt         time.Time           `json:"updated_at"`
+	DeletedAt         gorm.DeletedAt      `json:"-" gorm:"index"`
+	FullName          string              `json:"full_name" gorm:"not null"`
 	StudentCode       *string             `json:"student_code"`
-	Email             string              `json:"email"`
-	Password          string              `json:"-"`
-	Role              UserRole            `json:"role"`
-	Gender            UserGender          `json:"gender"`
-	Status            UserStatus          `json:"status"`
-	Phone             string              `json:"phone"`
-	IsVerify          bool                `json:"is_verify"`
-	StatusAccount     StatusAccount       `json:"status_account"`
+	Email             string              `json:"email" gorm:"uniqueIndex;not null"`
+	Password          string              `json:"-" gorm:"not null"`
+	Role              UserRole            `json:"role" gorm:"not null;default:'student'"`
+	Gender            UserGender          `json:"gender" gorm:"not null"`
+	Status            UserStatus          `json:"status" gorm:"not null;default:'active'"`
+	Phone             string              `json:"phone" gorm:"not null"`
+	IsVerify          bool                `json:"is_verify" gorm:"default:false"`
+	StatusAccount     StatusAccount       `json:"status_account" gorm:"not null;default:'pending'"`
 	Birthday          *time.Time          `json:"birthday"`
 	Avatar            *string             `json:"avatar"`
-	RoomID            *uint               `json:"-"`
-	Room              *Room               `json:"room"`
-	Contracts         *[]Contract         `json:"contracts"`
-	Payments          *[]Payment          `json:"payments"`
-	EmergencyContacts *[]EmergencyContact `json:"emergency_contacts"`
+	RoomID            *uint               `json:"room_id"`
+	Room              *Room               `json:"room" gorm:"foreignKey:RoomID"`
+	Contracts         *[]Contract         `json:"contracts" gorm:"foreignKey:UserID"`
+	Payments          *[]Payment          `json:"payments" gorm:"foreignKey:UserId"`
+	EmergencyContacts *[]EmergencyContact `json:"emergency_contacts" gorm:"foreignKey:UserID"`
 }
 
 func (User) TableName() string {
@@ -80,20 +83,26 @@ type UpdateUser struct {
 }
 
 type UserSimple struct {
-	Base
-	FullName    string     `json:"full_name"`
-	StudentCode *string    `json:"student_code"`
-	Email       string     `json:"email"`
-	Gender      UserGender `json:"gender"`
-	Status      UserStatus `json:"status"`
-	Phone       string     `json:"phone"`
-	Birthday    *time.Time `json:"birthday"`
-	Avatar      *string    `json:"avatar"`
+	ID          uint64         `json:"id" gorm:"primarykey"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+	FullName    string         `json:"full_name"`
+	StudentCode *string        `json:"student_code"`
+	Email       string         `json:"email"`
+	Gender      UserGender     `json:"gender"`
+	Status      UserStatus     `json:"status"`
+	Phone       string         `json:"phone"`
+	Birthday    *time.Time     `json:"birthday"`
+	Avatar      *string        `json:"avatar"`
 }
 
 func (u *User) ToSimple() UserSimple {
 	return UserSimple{
-		Base:        u.Base,
+		ID:          u.ID,
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
+		DeletedAt:   u.DeletedAt,
 		FullName:    u.FullName,
 		StudentCode: u.StudentCode,
 		Email:       u.Email,
