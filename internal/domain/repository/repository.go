@@ -13,4 +13,6 @@ type Repositories interface {
 	MaintenanceHistory() MaintenanceHistoryRepository
 	Payment() PaymentRepository
 	Bill() BillRepository
+	PaymentHistory() PaymentHistoryRepository
+	ContractTerm() ContractTermRepository
 }

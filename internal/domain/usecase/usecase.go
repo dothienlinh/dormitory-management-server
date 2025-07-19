@@ -11,4 +11,5 @@ type UseCases interface {
 	Amenities() AmenitiesUseCase
 	MaintenanceHistory() MaintenanceHistoryUsecase
 	Payment() PaymentUseCase
+	PaymentHistory() PaymentHistoryUseCase
 }

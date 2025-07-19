@@ -18,4 +18,11 @@ type ContractUseCase interface {
 	UpdateContract(ctx context.Context, id uint, contract *entity.UpdateContract) response.StatusResponse
 
 	DeleteContract(ctx context.Context, id uint) response.StatusResponse
+
+	// New methods for student contract module
+	GetMyContract(ctx context.Context, userID uint64) response.StatusResponse
+
+	DownloadContractPDF(ctx context.Context, contractID uint, userID uint64) response.StatusResponse
+
+	GetContractPaymentHistory(ctx context.Context, contractID uint, userID uint64) response.StatusResponse
 }

@@ -20,5 +20,6 @@ func SetupRoutes(router *gin.Engine, handlers *handler.Handlers, mw *middleware.
 		SetupAmenityRoutes(apiV1, handlers, mw)
 		SetupMaintenanceHistoryRoutes(apiV1, handlers, mw)
 		SetupPaymentRoutes(apiV1, handlers, mw)
+		SetupPaymentHistoryRoutes(apiV1, handlers, mw)
 	}
 }

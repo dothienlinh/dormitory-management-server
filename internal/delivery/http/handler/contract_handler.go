@@ -135,3 +135,73 @@ func (h *ContractHandler) DeleteContract() gin.HandlerFunc {
 		c.JSON(resp.Status, resp.Response)
 	}
 }
+
+func (h *ContractHandler) GetMyContract() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("GetMyContract")
+
+		userID, exists := c.Get("user_id")
+		if !exists {
+			h.logger.Error("User ID not found in context")
+			resp = response.Unauthorized("User not authenticated")
+			c.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		resp = h.useCases.Contract().GetMyContract(c, userID.(uint64))
+		c.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *ContractHandler) DownloadContractPDF() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("DownloadContractPDF")
+
+		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+		if err != nil {
+			h.logger.Error("Failed to parse contract ID", zap.Error(err))
+			resp = response.BadRequest("Invalid contract ID")
+			c.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		userID, exists := c.Get("user_id")
+		if !exists {
+			h.logger.Error("User ID not found in context")
+			resp = response.Unauthorized("User not authenticated")
+			c.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		resp = h.useCases.Contract().DownloadContractPDF(c, uint(id), userID.(uint64))
+		c.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *ContractHandler) GetContractPaymentHistory() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var resp response.StatusResponse
+		h.logger.Info("GetContractPaymentHistory")
+
+		contractID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+		if err != nil {
+			h.logger.Error("Failed to parse contract ID", zap.Error(err))
+			resp = response.BadRequest("Invalid contract ID")
+			c.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		userID, exists := c.Get("user_id")
+		if !exists {
+			h.logger.Error("User ID not found in context")
+			resp = response.Unauthorized("User not authenticated")
+			c.JSON(resp.Status, resp.Response)
+			return
+		}
+
+		resp = h.useCases.Contract().GetContractPaymentHistory(c, uint(contractID), userID.(uint64))
+		c.JSON(resp.Status, resp.Response)
+	}
+}
