@@ -12,6 +12,11 @@ func SetupPaymentRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw 
 
 	{
 		payments.POST("/vietqr", handlers.PaymentHandler.CreateLinkPaymentVietQR())
+
+		// Student payment routes for consistency with frontend
+		payments.GET("/my-payments", handlers.PaymentHistory.GetMyPaymentHistory())
+		payments.POST("/:id/pay", handlers.PaymentHistory.MakePayment())
+		payments.GET("/:id/receipt", handlers.PaymentHistory.DownloadReceipt())
 	}
 
 	router.POST("/payments/vietqr/receive-hook", handlers.PaymentHandler.ReceiveHookVietQR())

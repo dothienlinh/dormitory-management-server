@@ -14,6 +14,11 @@ func SetupContractRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw
 		contracts.GET("/:id", handlers.Contract.GetContractByID())
 		contracts.GET("/user/:user_id", handlers.Contract.GetContractByUserID())
 
+		// Student contract routes
+		contracts.GET("/my-contract", handlers.Contract.GetMyContract())
+		contracts.GET("/:id/download-pdf", handlers.Contract.DownloadContractPDF())
+		contracts.GET("/:id/payment-history", handlers.Contract.GetContractPaymentHistory())
+
 		contractAdmin := contracts.Group("", mw.ManagerMiddleware())
 		{
 			contractAdmin.POST("", handlers.Contract.CreateContract())

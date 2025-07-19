@@ -164,3 +164,58 @@ func (uc *contractUseCase) DeleteContract(ctx context.Context, id uint) response
 
 	return response.Success("Contract deleted successfully", 0)
 }
+
+func (uc *contractUseCase) GetMyContract(ctx context.Context, userID uint64) response.StatusResponse {
+	contract, err := uc.repos.Contract().GetMyContract(ctx, userID)
+	if err != nil {
+		uc.logger.Error("Failed to get user's contract", zap.Error(err))
+		return response.NotFound("No contract found for user")
+	}
+
+	return response.Success(contract, 1)
+}
+
+func (uc *contractUseCase) DownloadContractPDF(ctx context.Context, contractID uint, userID uint64) response.StatusResponse {
+	contract, err := uc.repos.Contract().GetContractWithRelations(ctx, contractID)
+	if err != nil {
+		uc.logger.Error("Failed to get contract for PDF download", zap.Error(err))
+		return response.NotFound("Contract not found")
+	}
+
+	// Check if user owns this contract
+	if contract.UserID != userID {
+		return response.Forbidden("You don't have permission to download this contract")
+	}
+
+	// Generate PDF file URL or path
+	pdfURL := fmt.Sprintf("/contracts/%d/contract.pdf", contractID)
+
+	pdfData := map[string]interface{}{
+		"contract_id": contractID,
+		"pdf_url":     pdfURL,
+		"contract":    contract,
+	}
+
+	return response.Success(pdfData, 1)
+}
+
+func (uc *contractUseCase) GetContractPaymentHistory(ctx context.Context, contractID uint, userID uint64) response.StatusResponse {
+	contract, err := uc.repos.Contract().GetByID(ctx, contractID)
+	if err != nil {
+		uc.logger.Error("Failed to get contract", zap.Error(err))
+		return response.NotFound("Contract not found")
+	}
+
+	// Check if user owns this contract
+	if contract.UserID != userID {
+		return response.Forbidden("You don't have permission to view this contract's payment history")
+	}
+
+	paymentHistories, err := uc.repos.PaymentHistory().GetByContractID(ctx, contractID)
+	if err != nil {
+		uc.logger.Error("Failed to get payment history", zap.Error(err))
+		return response.InternalServerError("Failed to get payment history")
+	}
+
+	return response.Success(paymentHistories, int64(len(paymentHistories)))
+}

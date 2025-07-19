@@ -92,3 +92,31 @@ func (r *contractRepository) Delete(ctx context.Context, id uint) error {
 	}
 	return nil
 }
+
+func (r *contractRepository) GetMyContract(ctx context.Context, userID uint64) (*entity.Contract, error) {
+	var contract entity.Contract
+	if err := r.db.WithContext(ctx).Table(contract.TableName()).Where("user_id = ?", userID).
+		Preload("User").
+		Preload("Room.RoomCategory").
+		First(&contract).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("contract for user ID %d not found", userID)
+		}
+		return nil, fmt.Errorf("failed to get contract: %w", err)
+	}
+	return &contract, nil
+}
+
+func (r *contractRepository) GetContractWithRelations(ctx context.Context, id uint) (*entity.Contract, error) {
+	var contract entity.Contract
+	if err := r.db.WithContext(ctx).Table(contract.TableName()).
+		Preload("User").
+		Preload("Room.RoomCategory").
+		First(&contract, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("contract with ID %d not found", id)
+		}
+		return nil, fmt.Errorf("failed to get contract: %w", err)
+	}
+	return &contract, nil
+}

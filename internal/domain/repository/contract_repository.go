@@ -17,4 +17,9 @@ type ContractRepository interface {
 	Update(ctx context.Context, contract *entity.Contract) error
 
 	Delete(ctx context.Context, id uint) error
+
+	// New methods for student contract module
+	GetMyContract(ctx context.Context, userID uint64) (*entity.Contract, error)
+
+	GetContractWithRelations(ctx context.Context, id uint) (*entity.Contract, error)
 }
