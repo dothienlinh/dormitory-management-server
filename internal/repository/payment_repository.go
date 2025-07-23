@@ -34,22 +34,50 @@ func (r *paymentRepository) ReceiveHookVietQR(ctx context.Context, webhookData *
 		}
 
 		bill.UserID = payment.UserId
-		bill.PaymentID = payment.ID
-		bill.Amount = float64(payment.Amount)
-		bill.Status = "PAID"
-		bill.Description = payment.Description
+		bill.Status = entity.BillStatusPending
+		bill.PaymentID = &payment.ID
 
-		findBill := entity.Bill{PaymentID: payment.ID, UserID: payment.UserId}
-		if err := tx.WithContext(ctx).Table(findBill.TableName()).Where(&findBill).First(&findBill).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				if err := tx.WithContext(ctx).Table(bill.TableName()).Create(bill).Error; err != nil {
-					return err
-				}
-				return nil
-			}
+		if err := tx.WithContext(ctx).Table(bill.TableName()).Where(&bill).First(&bill).Error; err != nil {
+			return err
+		}
+
+		bill.Status = entity.BillStatusPaid
+		if err := tx.WithContext(ctx).Table(bill.TableName()).Updates(&bill).Error; err != nil {
+			return err
+		}
+
+		contract := entity.Contract{
+			UserID: payment.UserId,
+			Status: entity.ContractStatusActive,
+		}
+		if err := tx.WithContext(ctx).Table(contract.TableName()).Where(&contract).First(&contract).Error; err != nil {
+			return err
+		}
+
+		paymentHistory := entity.PaymentHistory{
+			ContractID:  contract.ID,
+			Amount:      float64(payment.Amount),
+			Status:      entity.PaymentStatusPaid,
+			PaymentDate: &payment.CreatedAt,
+		}
+		if err := tx.WithContext(ctx).Table(paymentHistory.TableName()).Create(&paymentHistory).Error; err != nil {
 			return err
 		}
 
 		return nil
 	})
+}
+
+func (r *paymentRepository) CancelPaymentVietQR(ctx context.Context, paymentLinkId string) error {
+	payment := entity.Payment{PaymentLinkId: paymentLinkId}
+	if err := r.db.WithContext(ctx).Table(payment.TableName()).Where(&payment).First(&payment).Error; err != nil {
+		return err
+	}
+
+	if payment.Status != "PENDING" {
+		return errors.New("payment link is not in pending status")
+	}
+
+	payment.Status = "CANCELED"
+	return r.db.WithContext(ctx).Table(payment.TableName()).Updates(&payment).Error
 }

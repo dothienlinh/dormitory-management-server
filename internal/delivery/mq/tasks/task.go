@@ -11,6 +11,7 @@ type (
 		emailTask   *EmailTask
 		paymentTask *PaymentTask
 		authTask    *AuthTask
+		billTask    *BillTask
 	}
 )
 
@@ -19,6 +20,7 @@ func NewConsumer(logger logger.Logger, config *config.Config, repos repository.R
 		emailTask:   NewEmailTask(logger, config, repos),
 		paymentTask: NewPaymentTask(logger, config, repos),
 		authTask:    NewAuthTask(logger, config, repos),
+		billTask:    NewBillTask(logger, repos),
 	}
 }
 
@@ -32,4 +34,8 @@ func (c *Consumer) PaymentTask() *PaymentTask {
 
 func (c *Consumer) AuthTask() *AuthTask {
 	return c.authTask
+}
+
+func (c *Consumer) BillTask() *BillTask {
+	return c.billTask
 }

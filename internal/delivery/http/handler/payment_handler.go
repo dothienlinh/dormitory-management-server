@@ -29,6 +29,7 @@ func (h *PaymentHandler) CreateLinkPaymentVietQR() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var resp response.StatusResponse
 		h.logger.Info("CreateLinkPaymentVietQR")
+		userID := ctx.GetUint64("user_id")
 
 		var payload entity.CreateLinkPaymentVietQR
 		if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -37,7 +38,17 @@ func (h *PaymentHandler) CreateLinkPaymentVietQR() gin.HandlerFunc {
 			return
 		}
 
-		resp = h.useCases.Payment().CreateLinkPaymentVietQR(ctx, &payload)
+		resp = h.useCases.Payment().CreateLinkPaymentVietQR(ctx, userID, &payload)
+		ctx.JSON(resp.Status, resp.Response)
+	}
+}
+
+func (h *PaymentHandler) CancelPaymentVietQR() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var resp response.StatusResponse
+		paymentLinkId := ctx.Param("paymentLinkId")
+
+		resp = h.useCases.Payment().CancelPaymentVietQR(ctx, paymentLinkId)
 		ctx.JSON(resp.Status, resp.Response)
 	}
 }
@@ -64,6 +75,8 @@ func (h *PaymentHandler) ReceiveHookVietQR() gin.HandlerFunc {
 			ctx.Error(err)
 			return
 		}
+
+		h.logger.Info("Received webhook data", zap.Any("data", webhookData))
 
 		if err := h.useCases.Payment().ReceiveHookVietQR(ctx, webhookData); err != nil {
 			h.logger.Error("Failed to receive hook vietqr", zap.Error(err))

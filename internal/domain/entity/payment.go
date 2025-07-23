@@ -48,8 +48,13 @@ func (Payment) TableName() string {
 }
 
 type CreateLinkPaymentVietQR struct {
-	UserID      uint64 `json:"user_id" binding:"required"`
-	Amount      int    `json:"amount" binding:"required"`
-	Description string `json:"description" binding:"required"`
-	Name        string `json:"name" binding:"required"`
+	Amount      int      `json:"amount" binding:"required"`
+	Description string   `json:"description" binding:"required"`
+	Name        string   `json:"name" binding:"required"`
+	BillIDs     []uint64 `json:"bill_ids" binding:"required,dive,gt=0"`
+}
+
+type CreatePaymentLinkWorkerPayload struct {
+	Payment Payment  `json:"payment"`
+	BillIDs []uint64 `json:"bill_ids"`
 }

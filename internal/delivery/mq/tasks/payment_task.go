@@ -27,7 +27,7 @@ func NewPaymentTask(logger logger.Logger, config *config.Config, repos repositor
 }
 
 func (pt *PaymentTask) CreateLinkPaymentVietQR(ctx context.Context, t *asynq.Task) error {
-	var payload *entity.Payment
+	var payload *entity.CreatePaymentLinkWorkerPayload
 
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		pt.logger.Error("could not unmarshal payment payload", zap.Error(err))
@@ -35,23 +35,28 @@ func (pt *PaymentTask) CreateLinkPaymentVietQR(ctx context.Context, t *asynq.Tas
 	}
 
 	payment := &entity.Payment{
-		Amount:         payload.Amount,
+		Amount:         payload.Payment.Amount,
 		PaymentMethod:  entity.PaymentMethodVietQR,
-		Currency:       payload.Currency,
+		Currency:       payload.Payment.Currency,
 		PaymentChannel: entity.PaymentChannelBankTransfer,
-		Description:    payload.Description,
-		OrderCode:      payload.OrderCode,
-		PaymentLinkId:  payload.PaymentLinkId,
-		Status:         payload.Status,
-		ExpiredAt:      payload.ExpiredAt,
-		Bin:            payload.Bin,
-		AccountNumber:  payload.AccountNumber,
-		AccountName:    payload.AccountName,
-		UserId:         payload.UserId,
+		Description:    payload.Payment.Description,
+		OrderCode:      payload.Payment.OrderCode,
+		PaymentLinkId:  payload.Payment.PaymentLinkId,
+		Status:         payload.Payment.Status,
+		ExpiredAt:      payload.Payment.ExpiredAt,
+		Bin:            payload.Payment.Bin,
+		AccountNumber:  payload.Payment.AccountNumber,
+		AccountName:    payload.Payment.AccountName,
+		UserId:         payload.Payment.UserId,
 	}
 
 	if err := pt.repos.Payment().CreateLinkPaymentVietQR(ctx, payment); err != nil {
 		pt.logger.Error("could not create payment", zap.Error(err))
+		return err
+	}
+
+	if err := pt.repos.Bill().UpdateBillsWithPayment(ctx, payload.BillIDs, payment.ID); err != nil {
+		pt.logger.Error("could not update bills with payment", zap.Error(err))
 		return err
 	}
 	return nil

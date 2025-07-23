@@ -143,6 +143,10 @@ func main() {
 		return consumer.EmailTask().SendEmailBill(ctx, t)
 	})
 
+	mux.HandleFunc(string(tasks.TaskCreateBill), func(ctx context.Context, t *asynq.Task) error {
+		return consumer.BillTask().CreateBill()
+	})
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 

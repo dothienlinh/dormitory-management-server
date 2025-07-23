@@ -1,0 +1,35 @@
+# Build stage
+FROM golang:1.23.8-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependency files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build scheduler
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -a -installsuffix cgo \
+    -o scheduler ./cmd/scheduler/main.go
+
+# Final stage
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates && adduser -D -s /bin/sh appuser
+
+WORKDIR /app
+
+COPY --from=builder /app/.env.production .env
+COPY --from=builder /app/scheduler .
+RUN chown appuser:appuser scheduler && chmod +x scheduler
+
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD pgrep -x scheduler || exit 1
+
+CMD ["./scheduler"]

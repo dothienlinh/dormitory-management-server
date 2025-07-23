@@ -93,6 +93,28 @@ services:
       retries: 3
       start_period: 40s
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    container_name: dormitory-management-scheduler
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    networks:
+      - dormitory-network
+    healthcheck:
+      test: ["CMD", "pgrep", "-x", "scheduler"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 networks:
   dormitory-network:
     driver: bridge

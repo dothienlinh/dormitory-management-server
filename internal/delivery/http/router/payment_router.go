@@ -17,6 +17,7 @@ func SetupPaymentRoutes(router *gin.RouterGroup, handlers *handler.Handlers, mw 
 		payments.GET("/my-payments", handlers.PaymentHistory.GetMyPaymentHistory())
 		payments.POST("/:id/pay", handlers.PaymentHistory.MakePayment())
 		payments.GET("/:id/receipt", handlers.PaymentHistory.DownloadReceipt())
+		payments.PATCH("/vietqr/:paymentLinkId/cancel", handlers.PaymentHandler.CancelPaymentVietQR())
 	}
 
 	router.POST("/payments/vietqr/receive-hook", handlers.PaymentHandler.ReceiveHookVietQR())

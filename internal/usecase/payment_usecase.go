@@ -10,11 +10,13 @@ import (
 	"dormitory_management/internal/domain/response"
 	"dormitory_management/pkg/logger"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/payOSHQ/payos-lib-golang"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type paymentUseCase struct {
@@ -34,9 +36,9 @@ func NewPaymentUseCase(repos repository.Repositories, logger logger.Logger, asyn
 	}
 }
 
-func (uc *paymentUseCase) CreateLinkPaymentVietQR(ctx context.Context, payload *entity.CreateLinkPaymentVietQR) response.StatusResponse {
+func (uc *paymentUseCase) CreateLinkPaymentVietQR(ctx context.Context, userID uint64, payload *entity.CreateLinkPaymentVietQR) response.StatusResponse {
 
-	user := &entity.User{ID: payload.UserID}
+	user := &entity.User{ID: userID}
 
 	if err := uc.repos.User().GetByID(ctx, user); err != nil {
 		uc.logger.Error("Failed to get user by ID", zap.Error(err))
@@ -67,20 +69,32 @@ func (uc *paymentUseCase) CreateLinkPaymentVietQR(ctx context.Context, payload *
 		return response.InternalServerError("Failed to create payment link")
 	}
 
-	jsonPayload, err := json.Marshal(&entity.Payment{
-		PaymentMethod:  entity.PaymentMethodVietQR,
-		PaymentChannel: entity.PaymentChannelBankTransfer,
-		UserId:         payload.UserID,
-		Amount:         payload.Amount,
-		Currency:       data.Currency,
-		Bin:            data.Bin,
-		AccountNumber:  data.AccountNumber,
-		AccountName:    data.AccountName,
-		Description:    payload.Description,
-		OrderCode:      data.OrderCode,
-		PaymentLinkId:  data.PaymentLinkId,
-		Status:         data.Status,
-		ExpiredAt:      data.ExpiredAt,
+	bills, err := uc.repos.Bill().GetListBillsByIDs(ctx, payload.BillIDs)
+	if err != nil {
+		uc.logger.Error("Failed to get bills by IDs", zap.Error(err))
+		return response.InternalServerError("Failed to get bills")
+	}
+	if len(bills) > 0 {
+		return response.BadRequest("Bills already paid")
+	}
+
+	jsonPayload, err := json.Marshal(&entity.CreatePaymentLinkWorkerPayload{
+		Payment: entity.Payment{
+			PaymentMethod:  entity.PaymentMethodVietQR,
+			PaymentChannel: entity.PaymentChannelBankTransfer,
+			UserId:         userID,
+			Amount:         payload.Amount,
+			Currency:       data.Currency,
+			Bin:            data.Bin,
+			AccountNumber:  data.AccountNumber,
+			AccountName:    data.AccountName,
+			Description:    payload.Description,
+			OrderCode:      data.OrderCode,
+			PaymentLinkId:  data.PaymentLinkId,
+			Status:         data.Status,
+			ExpiredAt:      data.ExpiredAt,
+		},
+		BillIDs: payload.BillIDs,
 	})
 	if err != nil {
 		uc.logger.Error("Failed to marshal payload", zap.Error(err))
@@ -115,4 +129,20 @@ func (uc *paymentUseCase) ReceiveHookVietQR(ctx context.Context, webhookData *pa
 	}
 
 	return nil
+}
+
+func (uc *paymentUseCase) CancelPaymentVietQR(ctx context.Context, paymentLinkId string) response.StatusResponse {
+	if paymentLinkId == "" {
+		return response.BadRequest("Payment link ID is required")
+	}
+
+	if err := uc.repos.Payment().CancelPaymentVietQR(ctx, paymentLinkId); err != nil {
+		uc.logger.Error("Failed to cancel payment", zap.Error(err))
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.NotFound("Payment not found")
+		}
+		return response.InternalServerError("Failed to cancel payment")
+	}
+
+	return response.Success("Cancel payment success", 0)
 }
