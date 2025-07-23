@@ -20,6 +20,7 @@ type useCases struct {
 	maintenanceHistory usecase.MaintenanceHistoryUsecase
 	payment            usecase.PaymentUseCase
 	paymentHistory     usecase.PaymentHistoryUseCase
+	bill               usecase.BillUseCase
 }
 
 func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClient *asynq.Client) usecase.UseCases {
@@ -36,6 +37,7 @@ func NewUseCases(repos repository.Repositories, logger logger.Logger, asynqClien
 	useCases.maintenanceHistory = NewMaintenanceHistoryUsecase(repos, logger)
 	useCases.payment = NewPaymentUseCase(repos, logger, asynqClient)
 	useCases.paymentHistory = NewPaymentHistoryUseCase(repos, logger)
+	useCases.bill = NewBillUseCase(logger, repos)
 
 	return useCases
 }
@@ -82,4 +84,8 @@ func (uc *useCases) Payment() usecase.PaymentUseCase {
 
 func (uc *useCases) PaymentHistory() usecase.PaymentHistoryUseCase {
 	return uc.paymentHistory
+}
+
+func (uc *useCases) Bill() usecase.BillUseCase {
+	return uc.bill
 }

@@ -8,6 +8,7 @@ const (
 	TaskCreateLinkPaymentVietQR TaskType = "task:create_link_payment_vietqr"
 	TaskSendEmailForgotPassword TaskType = "task:send_email_forgot_password"
 	TaskSendEmailBill           TaskType = "task:send_email_bill"
+	TaskCreateBill              TaskType = "task:create_bill"
 )
 
 const (

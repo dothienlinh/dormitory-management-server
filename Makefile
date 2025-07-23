@@ -37,6 +37,9 @@ build-app-docker:
 build-worker-docker:
 	docker-compose --env-file .env.production up -d worker --build
 
+build-scheduler-docker:
+	docker-compose --env-file .env.production up -d scheduler --build
+
 build-db-docker:
 	docker-compose --env-file .env.production up -d postgres --build
 

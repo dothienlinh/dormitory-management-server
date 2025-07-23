@@ -9,6 +9,7 @@ import (
 )
 
 type PaymentUseCase interface {
-	CreateLinkPaymentVietQR(ctx context.Context, payload *entity.CreateLinkPaymentVietQR) response.StatusResponse
+	CreateLinkPaymentVietQR(ctx context.Context, userID uint64, payload *entity.CreateLinkPaymentVietQR) response.StatusResponse
 	ReceiveHookVietQR(ctx context.Context, webhookData *payos.WebhookDataType) error
+	CancelPaymentVietQR(ctx context.Context, paymentLinkId string) response.StatusResponse
 }

@@ -64,6 +64,30 @@ func main() {
 		if err := seedCleaningSchedules(context, db); err != nil {
 			log.Fatal("Failed to seed cleaning schedules", err)
 		}
+	case "all":
+		if err := seedAmenities(context, db); err != nil {
+			log.Fatal("Failed to seed amenities", err)
+		}
+		if err := seedRoomCategories(context, db); err != nil {
+			log.Fatal("Failed to seed room categories", err)
+		}
+		if err := seedNotifications(context, db); err != nil {
+			log.Fatal("Failed to seed notifications", err)
+		}
+		if err := seedEvents(context, db); err != nil {
+			log.Fatal("Failed to seed events", err)
+		}
+		if err := seedServiceRequests(context, db); err != nil {
+			log.Fatal("Failed to seed service requests", err)
+		}
+		if err := seedRoomRules(context, db); err != nil {
+			log.Fatal("Failed to seed room rules", err)
+		}
+		if err := seedCleaningSchedules(context, db); err != nil {
+			log.Fatal("Failed to seed cleaning schedules", err)
+		}
+		log.Info("All tables seeded successfully")
+		return
 	default:
 		log.Fatal("Invalid table specified. Use -tables=amenities,room_categories,notifications,events,service_requests,room_rules,cleaning_schedules to specify which tables to seed.", fmt.Errorf("usage: %s -tables=amenities,room_categories,notifications,events,service_requests,room_rules,cleaning_schedules", flag.CommandLine.Name()))
 	}

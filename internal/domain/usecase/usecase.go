@@ -12,4 +12,5 @@ type UseCases interface {
 	MaintenanceHistory() MaintenanceHistoryUsecase
 	Payment() PaymentUseCase
 	PaymentHistory() PaymentHistoryUseCase
+	Bill() BillUseCase
 }

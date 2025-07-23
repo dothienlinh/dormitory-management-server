@@ -17,6 +17,7 @@ type Handlers struct {
 	MaintenanceHistory *MaintenanceHistoryHandler
 	PaymentHandler     *PaymentHandler
 	PaymentHistory     *PaymentHistoryHandler
+	Bill               *BillHandler
 }
 
 func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
@@ -32,5 +33,6 @@ func NewHandlers(useCases usecase.UseCases, logger logger.Logger) *Handlers {
 		MaintenanceHistory: NewMaintenanceHistoryHandler(useCases, logger),
 		PaymentHandler:     NewPaymentHandler(useCases, logger),
 		PaymentHistory:     NewPaymentHistoryHandler(useCases, logger),
+		Bill:               NewBillHandler(useCases, logger),
 	}
 }
