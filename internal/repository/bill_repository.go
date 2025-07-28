@@ -35,11 +35,13 @@ func (r *billRepository) CreateBill(ctx context.Context) error {
 
 	bills := []entity.Bill{}
 	for _, v := range contracts {
+		description := "Monthly bill for room " + v.Room.RoomNumber
 		bills = append(bills, entity.Bill{
-			UserID:  v.UserID,
-			Amount:  v.Room.RoomCategory.Price,
-			Status:  entity.BillStatusPending,
-			DueDate: time.Now().Add(15 * 24 * time.Hour), // Due date is set to 15 days from now
+			UserID:      v.UserID,
+			Amount:      v.Room.RoomCategory.Price,
+			Status:      entity.BillStatusPending,
+			Description: &description,
+			DueDate:     time.Now().Add(15 * 24 * time.Hour), // Due date is set to 15 days from now
 		})
 	}
 

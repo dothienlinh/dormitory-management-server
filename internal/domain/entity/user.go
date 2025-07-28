@@ -58,6 +58,7 @@ type User struct {
 	StatusAccount     StatusAccount       `json:"status_account" gorm:"not null;default:'pending'"`
 	Birthday          *time.Time          `json:"birthday"`
 	Avatar            *string             `json:"avatar"`
+	Address           *string             `json:"address"`
 	RoomID            *uint               `json:"room_id"`
 	Room              *Room               `json:"room" gorm:"foreignKey:RoomID"`
 	Contracts         *[]Contract         `json:"contracts" gorm:"foreignKey:UserID"`
@@ -250,6 +251,7 @@ type UserUpdateMe struct {
 	Phone            *string    `json:"phone" binding:"required"`
 	Birthday         *time.Time `json:"birthday" binding:"omitempty"`
 	Gender           UserGender `json:"gender" binding:"omitempty,oneof=male female other"`
+	Address          *string    `json:"address" binding:"omitempty"`
 	EmergencyContact struct {
 		Name  string `json:"name" binding:"required"`
 		Phone string `json:"phone" binding:"required"`

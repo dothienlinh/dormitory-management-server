@@ -193,6 +193,9 @@ func (r *userRepository) UpdateMe(ctx context.Context, user *entity.User, payloa
 		if payload.Gender != "" {
 			updates["gender"] = payload.Gender
 		}
+		if payload.Address != nil {
+			updates["address"] = *payload.Address
+		}
 
 		if len(updates) > 0 {
 			if err := tx.WithContext(ctx).Table(user.TableName()).Where("id = ?", user.ID).Updates(updates).Error; err != nil {
